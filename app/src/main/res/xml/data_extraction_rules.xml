@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- 
+        For a simple OCR app, we don't need cloud backup of cache files.
+        Only backup user settings and database if needed.
+        -->
+        <exclude domain="cache" />
+        <exclude domain="no_backup" />
+    </cloud-backup>
+    
+    <device-transfer>
+        <!-- Allow device transfer of user data -->
+        <exclude domain="cache" />
+        <exclude domain="no_backup" />
+    </device-transfer>
+</data-extraction-rules>

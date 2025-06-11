@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- 
+    Specify which files should be included in the backup.
+    For a simple OCR app, we can exclude cache and temporary files.
+    -->
+    <exclude domain="cache" />
+    <exclude domain="no_backup" />
+</full-backup-content>

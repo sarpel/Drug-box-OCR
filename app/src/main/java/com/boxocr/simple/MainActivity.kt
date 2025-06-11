@@ -1,0 +1,88 @@
+package com.boxocr.simple
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.boxocr.simple.ui.batch.BatchScanningScreen
+import com.boxocr.simple.ui.camera.CameraScreen
+import com.boxocr.simple.ui.enhanced.EnhancedMatchingScreen
+import com.boxocr.simple.ui.home.HomeScreen
+import com.boxocr.simple.ui.settings.SettingsScreen
+import com.boxocr.simple.ui.theme.BoxOCRTheme
+import dagger.hilt.android.AndroidEntryPoint
+
+/**
+ * Main Activity - Simple navigation between 3 screens:
+ * 1. Home (with database management)
+ * 2. Camera (OCR capture)
+ * 3. Settings (API key)
+ */
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        
+        setContent {
+            BoxOCRTheme {
+                val navController = rememberNavController()
+                
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = "home"
+                    ) {
+                        composable("home") {
+                            HomeScreen(
+                                onNavigateToCamera = { navController.navigate("camera") },
+                                onNavigateToBatchScanning = { navController.navigate("batch") },
+                                onNavigateToSettings = { navController.navigate("settings") }
+                            )
+                        }
+                        
+                        composable("camera") {
+                            CameraScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        
+                        composable("batch") {
+                            BatchScanningScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        
+                        composable("enhanced_matching") {
+                            EnhancedMatchingScreen(
+                                onMatchConfirmed = { drugName ->
+                                    // Navigate back with result
+                                    navController.popBackStack()
+                                },
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        
+                        composable("settings") {
+                            SettingsScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
