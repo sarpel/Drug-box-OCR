@@ -38,6 +38,7 @@ fun HomeScreen(
     onNavigateToAdvancedAI: () -> Unit,
     onNavigateToIoTIntegration: () -> Unit,
     onNavigateToCustomAI: () -> Unit,
+    onNavigateToDrugBoxDatabase: () -> Unit,
     onNavigateToSettings: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -319,6 +320,35 @@ fun HomeScreen(
                                 )
                                 Text(
                                     text = "Yerel modeller ve özel AI sağlayıcıları",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
+                    }
+                    
+                    // Multi-Drug Database Management - Phase 2 Week 4
+                    Button(
+                        onClick = onNavigateToDrugBoxDatabase,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                            Column(
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text(
+                                    text = "İlaç Kutusu Görsel Veritabanı",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                Text(
+                                    text = "Hasarlı metin kurtarma için görsel database",
                                     style = MaterialTheme.typography.labelSmall
                                 )
                             }

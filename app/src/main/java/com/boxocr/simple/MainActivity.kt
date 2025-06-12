@@ -61,6 +61,7 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToAdvancedAI = { navController.navigate("advanced_ai") },
                                 onNavigateToIoTIntegration = { navController.navigate("iot_integration") },
                                 onNavigateToCustomAI = { navController.navigate("custom_ai") },
+                                onNavigateToDrugBoxDatabase = { navController.navigate("drug_box_database") },
                                 onNavigateToSettings = { navController.navigate("settings") }
                             )
                         }
