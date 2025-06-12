@@ -15,6 +15,8 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-serialization:1.9.22") // Or the version compatible with your Kotlin version
     }
 }
+val opencvAndroidVersion by extra("4.8.0")
+val glideVersion by extra("4.16.0")
 
 task<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
