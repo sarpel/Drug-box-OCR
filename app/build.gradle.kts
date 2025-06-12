@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.Packaging
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -22,10 +24,10 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        
+
         // Turkish localization support
         resourceConfigurations += setOf("tr", "en")
-        
+
         // Enhanced features build config
         buildConfigField("String", "TURKISH_DRUG_API_BASE_URL", "\"https://api.ilacabak.com/\"")
         buildConfigField("String", "ALTERNATIVE_DRUG_API_URL", "\"https://api.ilacrehberi.com/\"")
@@ -42,7 +44,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            
+
             // Production Turkish medical configuration
             buildConfigField("boolean", "DEBUG_MODE", "false")
             buildConfigField("boolean", "ENABLE_ANALYTICS", "true")
@@ -53,12 +55,12 @@ android {
             buildConfigField("boolean", "ENABLE_ANALYTICS", "false")
         }
     }
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    
+
     kotlinOptions {
         jvmTarget = "1.8"
         freeCompilerArgs += listOf(
@@ -68,17 +70,17 @@ android {
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
         )
     }
-    
+
     buildFeatures {
         compose = true
         buildConfig = true
     }
-    
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.8"
     }
-    
-    packagingOptions {
+
+    packaging() {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "/META-INF/gradle/incremental.annotation.processors"
@@ -95,7 +97,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
     // Jetpack Compose BOM - ensures compatible versions
-    implementation(platform("androidx.compose:compose-bom:2024.02.00"))
+    implementation(platform("androidx.compose:compose-bom:2025.06.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -116,10 +118,10 @@ dependencies {
     
     // Hilt Dependency Injection
     implementation("com.google.dagger:hilt-android:2.48.1")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
-    implementation("androidx.hilt:hilt-work:1.1.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
     kapt("com.google.dagger:hilt-compiler:2.48.1")
-    kapt("androidx.hilt:hilt-compiler:1.1.0")
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
 
     // Camera with ML Kit integration
     implementation("androidx.camera:camera-camera2:1.3.1")
@@ -156,8 +158,8 @@ dependencies {
     implementation("androidx.datastore:datastore-core:1.0.0")
 
     // Background processing
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
-    implementation("androidx.work:work-hilt:1.1.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.1")
+    implementation("androidx.work:work-hilt:2.10.1")
 
     // Turkish Excel database support - Apache POI
     implementation("org.apache.poi:poi:5.2.4")
@@ -180,7 +182,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-semantics")
     
     // Voice recognition for Turkish language
-    implementation("androidx.speech:speech-ktx:1.0.0-alpha05")
+    implementation("androidx.speech:speech-ktx:1.2.1")
     
     // Turkish language text processing
     implementation("org.apache.commons:commons-text:1.11.0")
@@ -216,10 +218,10 @@ dependencies {
     // Android instrumented tests
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.02.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.06.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.navigation:navigation-testing:2.7.6")
-    androidTestImplementation("androidx.work:work-testing:2.9.0")
+    androidTestImplementation("androidx.work:work-testing:2.10.1")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.48.1")
     kaptAndroidTest("com.google.dagger:hilt-compiler:2.48.1")
     
