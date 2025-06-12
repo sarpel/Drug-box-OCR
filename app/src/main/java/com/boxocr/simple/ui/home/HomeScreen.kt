@@ -34,6 +34,7 @@ fun HomeScreen(
     onNavigateToCamera: () -> Unit,
     onNavigateToBatchScanning: () -> Unit,
     onNavigateToTemplates: () -> Unit,
+    onNavigateToAIAssistant: () -> Unit,
     onNavigateToSettings: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -185,6 +186,34 @@ fun HomeScreen(
                         ) {
                             Icon(Icons.Default.Description, contentDescription = null)
                             Text("Browse Prescription Templates")
+                        }
+                    }
+                    
+                    // 🧠 AI Assistant button - Phase 5 Revolutionary Feature
+                    Button(
+                        onClick = onNavigateToAIAssistant,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.tertiary
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(text = "🧠", style = MaterialTheme.typography.titleMedium)
+                            Column(
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text(
+                                    text = "AI Tıbbi Asistan",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                Text(
+                                    text = "Türkiye'nin ilk tıbbi AI asistanı",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
                         }
                     }
                 }

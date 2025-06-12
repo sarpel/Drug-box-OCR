@@ -20,6 +20,7 @@ import com.boxocr.simple.ui.home.HomeScreen
 import com.boxocr.simple.ui.settings.SettingsScreen
 import com.boxocr.simple.ui.verification.VerificationScreen
 import com.boxocr.simple.ui.templates.TemplatesScreen
+import com.boxocr.simple.ui.ai.AIAssistantScreen
 import com.boxocr.simple.ui.theme.BoxOCRTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -52,6 +53,7 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToCamera = { navController.navigate("camera") },
                                 onNavigateToBatchScanning = { navController.navigate("batch") },
                                 onNavigateToTemplates = { navController.navigate("templates") },
+                                onNavigateToAIAssistant = { navController.navigate("ai_assistant") },
                                 onNavigateToSettings = { navController.navigate("settings") }
                             )
                         }
@@ -102,6 +104,12 @@ class MainActivity : ComponentActivity() {
                                     // Navigate to batch scanning with selected template
                                     navController.navigate("batch")
                                 },
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        
+                        composable("ai_assistant") {
+                            AIAssistantScreen(
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }

@@ -135,6 +135,31 @@ dependencies {
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
     implementation("com.google.mlkit:language-id:17.0.4")
     implementation("com.google.mlkit:translate:17.0.1")
+    
+    // 🧠 PHASE 5: AI INTELLIGENCE DEPENDENCIES
+    // TensorFlow Lite for on-device AI inference
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+    implementation("org.tensorflow:tensorflow-lite-metadata:0.4.4")
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.14.0")
+    
+    // TensorFlow Lite Task Library for specialized AI tasks
+    implementation("org.tensorflow:tensorflow-lite-task-vision:0.4.4")
+    implementation("org.tensorflow:tensorflow-lite-task-text:0.4.4")
+    implementation("org.tensorflow:tensorflow-lite-task-audio:0.4.4")
+    
+    // Advanced image processing for AI vision
+    implementation("androidx.camera:camera-mlkit-vision:1.4.0-alpha02")
+    
+    // AI model optimization and quantization
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
+    
+    // Advanced coroutines for AI parallel processing
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")
+    
+    // Memory-efficient bitmap processing for AI vision
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    kapt("com.github.bumptech.glide:compiler:4.16.0")
 
     // Networking
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
