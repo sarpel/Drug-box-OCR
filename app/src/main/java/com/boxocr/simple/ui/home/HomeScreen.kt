@@ -35,6 +35,9 @@ fun HomeScreen(
     onNavigateToBatchScanning: () -> Unit,
     onNavigateToTemplates: () -> Unit,
     onNavigateToAIAssistant: () -> Unit,
+    onNavigateToAdvancedAI: () -> Unit,
+    onNavigateToIoTIntegration: () -> Unit,
+    onNavigateToCustomAI: () -> Unit,
     onNavigateToSettings: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -211,6 +214,111 @@ fun HomeScreen(
                                 )
                                 Text(
                                     text = "Türkiye'nin ilk tıbbi AI asistanı",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 🚀 PRODUCTION FEATURES - PHASE 6
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "🚀 Üretim Özellikleri",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    
+                    Text(
+                        text = "Gelişmiş AI ve IoT entegrasyonu",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    // Advanced AI Models Integration
+                    Button(
+                        onClick = onNavigateToAdvancedAI,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.Psychology, contentDescription = null)
+                            Column(
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text(
+                                    text = "Gelişmiş AI Modelleri",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                Text(
+                                    text = "GPT-4, Claude, Gemini Pro entegrasyonu",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
+                    }
+                    
+                    // IoT Medical Device Integration
+                    Button(
+                        onClick = onNavigateToIoTIntegration,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.Devices, contentDescription = null)
+                            Column(
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text(
+                                    text = "IoT Tıbbi Cihaz Entegrasyonu",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                Text(
+                                    text = "Akıllı tıbbi cihazlar ve vital signs",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
+                    }
+                    
+                    // Custom AI Integration
+                    Button(
+                        onClick = onNavigateToCustomAI,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.tertiary
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.Settings, contentDescription = null)
+                            Column(
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text(
+                                    text = "Özel AI Entegrasyonu",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                Text(
+                                    text = "Yerel modeller ve özel AI sağlayıcıları",
                                     style = MaterialTheme.typography.labelSmall
                                 )
                             }

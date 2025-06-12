@@ -21,6 +21,9 @@ import com.boxocr.simple.ui.settings.SettingsScreen
 import com.boxocr.simple.ui.verification.VerificationScreen
 import com.boxocr.simple.ui.templates.TemplatesScreen
 import com.boxocr.simple.ui.ai.AIAssistantScreen
+import com.boxocr.simple.ui.production.AdvancedAIModelsScreen
+import com.boxocr.simple.ui.production.IoTIntegrationScreen
+import com.boxocr.simple.ui.production.CustomAIIntegrationScreen
 import com.boxocr.simple.ui.theme.BoxOCRTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -54,6 +57,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToBatchScanning = { navController.navigate("batch") },
                                 onNavigateToTemplates = { navController.navigate("templates") },
                                 onNavigateToAIAssistant = { navController.navigate("ai_assistant") },
+                                onNavigateToAdvancedAI = { navController.navigate("advanced_ai") },
+                                onNavigateToIoTIntegration = { navController.navigate("iot_integration") },
+                                onNavigateToCustomAI = { navController.navigate("custom_ai") },
                                 onNavigateToSettings = { navController.navigate("settings") }
                             )
                         }
@@ -116,6 +122,26 @@ class MainActivity : ComponentActivity() {
                         
                         composable("settings") {
                             SettingsScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        
+                        // 🚀 PRODUCTION FEATURES - PHASE 6 NAVIGATION
+                        
+                        composable("advanced_ai") {
+                            AdvancedAIModelsScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        
+                        composable("iot_integration") {
+                            IoTIntegrationScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        
+                        composable("custom_ai") {
+                            CustomAIIntegrationScreen(
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
