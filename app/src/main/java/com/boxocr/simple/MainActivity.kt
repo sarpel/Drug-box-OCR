@@ -24,7 +24,8 @@ import com.boxocr.simple.ui.ai.AIAssistantScreen
 import com.boxocr.simple.ui.production.AdvancedAIModelsScreen
 import com.boxocr.simple.ui.production.IoTIntegrationScreen
 import com.boxocr.simple.ui.production.CustomAIIntegrationScreen
-import com.boxocr.simple.ui.theme.BoxOCRTheme
+import com.boxocr.simple.ui.multidrug.DrugBoxImageDatabaseScreen
+import com.boxocr.simple.ui.multidrug.MultiDrugResultsScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -143,6 +144,21 @@ class MainActivity : ComponentActivity() {
                         composable("custom_ai") {
                             CustomAIIntegrationScreen(
                                 onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        
+                        // 🚀 MULTI-DRUG ENHANCEMENT - PHASE 2 NAVIGATION
+                        
+                        composable("drug_box_database") {
+                            DrugBoxImageDatabaseScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        
+                        composable("multi_drug_results") {
+                            MultiDrugResultsScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToBatch = { navController.navigate("batch") }
                             )
                         }
                     }

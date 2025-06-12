@@ -136,6 +136,10 @@ dependencies {
     implementation("com.google.mlkit:language-id:17.0.4")
     implementation("com.google.mlkit:translate:17.0.1")
     
+    // Phase 1 Multi-Drug Enhancement: Object Detection
+    implementation("com.google.mlkit:object-detection:17.0.1")
+    implementation("com.google.mlkit:object-detection-custom:17.0.1")
+    
     // 🧠 PHASE 5: AI INTELLIGENCE DEPENDENCIES
     // TensorFlow Lite for on-device AI inference
     implementation("org.tensorflow:tensorflow-lite:2.14.0")
@@ -160,6 +164,10 @@ dependencies {
     // Memory-efficient bitmap processing for AI vision
     implementation("com.github.bumptech.glide:glide:4.16.0")
     kapt("com.github.bumptech.glide:compiler:4.16.0")
+    
+    // Phase 1 Multi-Drug Enhancement: Visual Feature Extraction
+    implementation("org.opencv:opencv-android:4.8.0")  // For SIFT features and image processing
+    implementation("com.github.bumptech.glide:transformations:4.3.0")  // Image transformations
 
     // Networking
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

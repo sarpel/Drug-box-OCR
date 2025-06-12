@@ -12,11 +12,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import com.boxocr.simple.database.BoxOCRDatabase
 import com.boxocr.simple.database.DatabaseCallback
+import com.boxocr.simple.repository.*
 import javax.inject.Provider
 import javax.inject.Singleton
 
 /**
  * Repository Module - Database and repository bindings
+ * Updated for Phase 1 Multi-Drug Enhancement
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -84,4 +86,30 @@ object RepositoryModule {
      */
     @Provides
     fun provideDrugMatchingStatsDao(database: BoxOCRDatabase) = database.drugMatchingStatsDao()
+    
+    // Phase 1 Multi-Drug Enhancement - Visual Database DAOs
+    
+    /**
+     * Provide Drug Box Image DAO
+     */
+    @Provides
+    fun provideDrugBoxImageDao(database: BoxOCRDatabase) = database.drugBoxImageDao()
+    
+    /**
+     * Provide Drug Box Feature DAO
+     */
+    @Provides
+    fun provideDrugBoxFeatureDao(database: BoxOCRDatabase) = database.drugBoxFeatureDao()
+    
+    /**
+     * Provide Visual Similarity Match DAO
+     */
+    @Provides
+    fun provideVisualSimilarityMatchDao(database: BoxOCRDatabase) = database.visualSimilarityMatchDao()
+    
+    /**
+     * Provide Visual Correction DAO
+     */
+    @Provides
+    fun provideVisualCorrectionDao(database: BoxOCRDatabase) = database.visualCorrectionDao()
 }

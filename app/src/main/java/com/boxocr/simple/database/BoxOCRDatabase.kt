@@ -16,9 +16,14 @@ import javax.inject.Provider
         DrugEntity::class,
         ScanHistoryEntity::class,
         PrescriptionSessionEntity::class,
-        DrugMatchingStatsEntity::class
+        DrugMatchingStatsEntity::class,
+        // Phase 1 Enhancement: Visual Drug Database
+        DrugBoxImageEntity::class,
+        DrugBoxFeatureEntity::class,
+        VisualSimilarityMatchEntity::class,
+        VisualCorrectionEntity::class
     ],
-    version = 1,
+    version = 2, // Updated for Phase 1 Multi-Drug Enhancement
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -28,6 +33,12 @@ abstract class BoxOCRDatabase : RoomDatabase() {
     abstract fun scanHistoryDao(): ScanHistoryDao
     abstract fun prescriptionSessionDao(): PrescriptionSessionDao
     abstract fun drugMatchingStatsDao(): DrugMatchingStatsDao
+    
+    // Phase 1 Enhancement: Visual Drug Database DAOs
+    abstract fun drugBoxImageDao(): DrugBoxImageDao
+    abstract fun drugBoxFeatureDao(): DrugBoxFeatureDao
+    abstract fun visualSimilarityMatchDao(): VisualSimilarityMatchDao
+    abstract fun visualCorrectionDao(): VisualCorrectionDao
     
     companion object {
         const val DATABASE_NAME = "box_ocr_database"
