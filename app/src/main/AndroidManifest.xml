@@ -16,6 +16,9 @@
     
     <!-- Storage permissions for database file access -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    
+    <!-- Microphone permission for voice commands - Phase 2 Feature -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Camera hardware requirement -->
     <uses-feature

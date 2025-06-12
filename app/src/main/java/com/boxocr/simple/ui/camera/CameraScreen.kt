@@ -36,6 +36,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 @Composable
 fun CameraScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToVerification: () -> Unit = {},
     viewModel: CameraViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -50,6 +51,14 @@ fun CameraScreen(
     LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted) {
             cameraPermissionState.launchPermissionRequest()
+        }
+    }
+    
+    // Navigate to verification when verification data is available
+    LaunchedEffect(uiState.verificationData) {
+        uiState.verificationData?.let {
+            onNavigateToVerification()
+            viewModel.clearVerificationData()
         }
     }
     
@@ -86,7 +95,7 @@ fun CameraScreen(
                             .align(Alignment.BottomCenter)
                             .padding(32.dp),
                         uiState = uiState,
-                        onCapturePhoto = viewModel::capturePhoto,
+                        onCapturePhoto = viewModel::captureForVerification,
                         onToggleTorch = viewModel::toggleTorch
                     )
                     

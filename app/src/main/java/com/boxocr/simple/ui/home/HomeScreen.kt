@@ -33,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 fun HomeScreen(
     onNavigateToCamera: () -> Unit,
     onNavigateToBatchScanning: () -> Unit,
+    onNavigateToTemplates: () -> Unit,
     onNavigateToSettings: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -172,6 +173,20 @@ fun HomeScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    
+                    // Templates button - Phase 2 Feature
+                    OutlinedButton(
+                        onClick = onNavigateToTemplates,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.Description, contentDescription = null)
+                            Text("Browse Prescription Templates")
+                        }
+                    }
                 }
             }
             

@@ -18,6 +18,8 @@ import com.boxocr.simple.ui.camera.CameraScreen
 import com.boxocr.simple.ui.enhanced.EnhancedMatchingScreen
 import com.boxocr.simple.ui.home.HomeScreen
 import com.boxocr.simple.ui.settings.SettingsScreen
+import com.boxocr.simple.ui.verification.VerificationScreen
+import com.boxocr.simple.ui.templates.TemplatesScreen
 import com.boxocr.simple.ui.theme.BoxOCRTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -49,12 +51,31 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(
                                 onNavigateToCamera = { navController.navigate("camera") },
                                 onNavigateToBatchScanning = { navController.navigate("batch") },
+                                onNavigateToTemplates = { navController.navigate("templates") },
                                 onNavigateToSettings = { navController.navigate("settings") }
                             )
                         }
                         
                         composable("camera") {
                             CameraScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToVerification = { navController.navigate("verification") }
+                            )
+                        }
+                        
+                        composable("verification") {
+                            VerificationScreen(
+                                onConfirmed = { drugName ->
+                                    // Navigate back to batch scanning with confirmed drug
+                                    navController.popBackStack("batch", inclusive = false)
+                                },
+                                onRejected = {
+                                    // Navigate back to camera for rescan
+                                    navController.popBackStack("camera", inclusive = false)
+                                },
+                                onEnhancedMatching = { 
+                                    navController.navigate("enhanced_matching")
+                                },
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
@@ -70,6 +91,16 @@ class MainActivity : ComponentActivity() {
                                 onMatchConfirmed = { drugName ->
                                     // Navigate back with result
                                     navController.popBackStack()
+                                },
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        
+                        composable("templates") {
+                            TemplatesScreen(
+                                onTemplateSelected = { template ->
+                                    // Navigate to batch scanning with selected template
+                                    navController.navigate("batch")
                                 },
                                 onNavigateBack = { navController.popBackStack() }
                             )

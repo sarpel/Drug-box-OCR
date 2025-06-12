@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- English strings (secondary language) -->
+    
+    <!-- App Information -->
+    <string name="app_name">Drug Box OCR</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_camera">Camera</string>
+    <string name="nav_batch">Prescription</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_templates">Templates</string>
+    <string name="nav_voice">Voice Command</string>
+    <string name="nav_history">History</string>
+    <string name="nav_verification">Verification</string>
+    <string name="nav_enhanced">Enhanced Matching</string>
+    <string name="nav_recovery">Recovery</string>
+    
+    <!-- Home Screen -->
+    <string name="home_title">Drug Box Recognition System</string>
+    <string name="home_subtitle">Turkish Ministry of Health Approved</string>
+    <string name="home_start_scanning">Start Scanning</string>
+    <string name="home_prescription_mode">Prescription Mode</string>
+    <string name="home_quick_scan">Quick Scan</string>
+    <string name="home_batch_scan">Batch Scan</string>
+    <string name="home_recent_activity">Recent Activity</string>
+    <string name="home_daily_stats">Daily Statistics</string>
+    <string name="home_database_status">Database Status</string>
+    <string name="home_loaded_drugs">Loaded Drugs</string>
+    <string name="home_server_status">Server Status</string>
+    <string name="home_windows_connection">Windows Connection</string>
+    <string name="home_connected">Connected</string>
+    <string name="home_disconnected">Disconnected</string>
+    <string name="home_active">Active</string>
+    <string name="home_inactive">Inactive</string>
+    
+    <!-- Camera Screen -->
+    <string name="camera_title">Drug Box Scanning</string>
+    <string name="camera_instructions">Point the camera at the drug box</string>
+    <string name="camera_smart_mode">Smart Mode</string>
+    <string name="camera_manual_mode">Manual Mode</string>
+    <string name="camera_auto_capture">Auto Capture</string>
+    <string name="camera_capture_button">Capture</string>
+    <string name="camera_gallery_button">Choose from Gallery</string>
+    <string name="camera_flash_button">Flash</string>
+    <string name="camera_zoom_in">Zoom In</string>
+    <string name="camera_zoom_out">Zoom Out</string>
+    <string name="camera_focus">Focus</string>
+    <string name="camera_detecting">Detecting...</string>
+    <string name="camera_processing">Processing...</string>
+    <string name="camera_box_detected">Box Detected</string>
+    <string name="camera_text_stable">Text Stable</string>
+    <string name="camera_ready_capture">Ready to Capture</string>
+    
+    <!-- OCR Processing -->
+    <string name="ocr_processing">Processing Text Recognition...</string>
+    <string name="ocr_success">Text Recognition Successful</string>
+    <string name="ocr_failed">Text Recognition Failed</string>
+    <string name="ocr_retry">Retry</string>
+    <string name="ocr_recognized_text">Recognized Text:</string>
+    <string name="ocr_confidence">Confidence Level</string>
+    <string name="ocr_high_confidence">High Confidence</string>
+    <string name="ocr_medium_confidence">Medium Confidence</string>
+    <string name="ocr_low_confidence">Low Confidence</string>
+    
+    <!-- Database Matching -->
+    <string name="matching_title">Drug Matching</string>
+    <string name="matching_processing">Searching Database...</string>
+    <string name="matching_found">Drug Found</string>
+    <string name="matching_not_found">Drug Not Found</string>
+    <string name="matching_multiple_found">Multiple Matches</string>
+    <string name="matching_confidence">Match Confidence</string>
+    <string name="matching_similarity">Similarity</string>
+    <string name="matching_algorithm">Algorithm</string>
+    <string name="matching_exact">Exact Match</string>
+    <string name="matching_partial">Partial Match</string>
+    <string name="matching_fuzzy">Fuzzy Match</string>
+    <string name="matching_phonetic">Phonetic Match</string>
+    
+    <!-- Drug Information -->
+    <string name="drug_name">Drug Name</string>
+    <string name="drug_code">Drug Code</string>
+    <string name="drug_barcode">Barcode</string>
+    <string name="drug_active_ingredient">Active Ingredient</string>
+    <string name="drug_price">Price</string>
+    <string name="drug_atc_code">ATC Code</string>
+    <string name="drug_atc_name">ATC Name</string>
+    <string name="drug_equivalent">Equivalent Group</string>
+    <string name="drug_package_unit">Package Unit</string>
+    <string name="drug_package_amount">Package Amount</string>
+    <string name="drug_prescription_type">Prescription Type</string>
+    <string name="drug_sgk_active">SGK Active</string>
+    <string name="drug_details">Drug Details</string>
+    <string name="drug_copy">Copy</string>
+    <string name="drug_edit">Edit</string>
+    <string name="drug_confirm">Confirm</string>
+    <string name="drug_reject">Reject</string>
+    
+    <!-- Prescription Management -->
+    <string name="prescription_title">Prescription Management</string>
+    <string name="prescription_new">New Prescription</string>
+    <string name="prescription_current">Current Prescription</string>
+    <string name="prescription_add_drug">Add Drug</string>
+    <string name="prescription_remove_drug">Remove Drug</string>
+    <string name="prescription_drug_count">Drug Count</string>
+    <string name="prescription_total_price">Total Price</string>
+    <string name="prescription_patient_info">Patient Information</string>
+    <string name="prescription_patient_id">Patient ID/TC</string>
+    <string name="prescription_patient_name">Patient Name</string>
+    <string name="prescription_session_id">Session ID</string>
+    <string name="prescription_start_time">Start Time</string>
+    <string name="prescription_duration">Duration</string>
+    <string name="prescription_status">Status</string>
+    <string name="prescription_save">Save</string>
+    <string name="prescription_send">Send</string>
+    <string name="prescription_complete">Complete</string>
+    <string name="prescription_cancel">Cancel</string>
+    
+    <!-- Batch Scanning -->
+    <string name="batch_title">Batch Scanning</string>
+    <string name="batch_instruction">Scan multiple drug boxes in sequence</string>
+    <string name="batch_scan_count">Scanned: %1$d</string>
+    <string name="batch_queue_preview">Queue Preview</string>
+    <string name="batch_next_drug">Next Drug</string>
+    <string name="batch_finish">Finish</string>
+    <string name="batch_continue">Continue</string>
+    <string name="batch_clear">Clear</string>
+    <string name="batch_progress">Progress</string>
+    <string name="batch_session_active">Session Active</string>
+    <string name="batch_session_complete">Session Complete</string>
+    
+    <!-- Templates -->
+    <string name="templates_title">Prescription Templates</string>
+    <string name="templates_subtitle">Common condition combinations</string>
+    <string name="templates_search">Search Templates</string>
+    <string name="templates_category">Category</string>
+    <string name="templates_usage_count">Usage Count</string>
+    <string name="templates_apply">Apply Template</string>
+    <string name="templates_preview">Preview</string>
+    <string name="templates_edit">Edit</string>
+    <string name="templates_diabetes">Diabetes</string>
+    <string name="templates_hypertension">Hypertension</string>
+    <string name="templates_cardiovascular">Cardiovascular</string>
+    <string name="templates_respiratory">Respiratory</string>
+    <string name="templates_gastrointestinal">Gastrointestinal</string>
+    <string name="templates_neurological">Neurological</string>
+    <string name="templates_infectious">Infectious</string>
+    <string name="templates_pain_management">Pain Management</string>
+    
+    <!-- Voice Commands -->
+    <string name="voice_title">Voice Commands</string>
+    <string name="voice_start_listening">Start Listening</string>
+    <string name="voice_stop_listening">Stop Listening</string>
+    <string name="voice_listening">Listening...</string>
+    <string name="voice_command_recognized">Command Recognized</string>
+    <string name="voice_command_not_recognized">Command Not Recognized</string>
+    <string name="voice_help">Voice Help</string>
+    <string name="voice_commands_list">Available Commands</string>
+    <string name="voice_enabled">Voice Commands Enabled</string>
+    <string name="voice_disabled">Voice Commands Disabled</string>
+    
+    <!-- History -->
+    <string name="history_title">Prescription History</string>
+    <string name="history_subtitle">Past prescription records and statistics</string>
+    <string name="history_today">Today</string>
+    <string name="history_yesterday">Yesterday</string>
+    <string name="history_this_week">This Week</string>
+    <string name="history_this_month">This Month</string>
+    <string name="history_all_time">All Time</string>
+    <string name="history_filter">Filter</string>
+    <string name="history_export">Export</string>
+    <string name="history_statistics">Statistics</string>
+    <string name="history_total_prescriptions">Total Prescriptions</string>
+    <string name="history_total_drugs">Total Drugs</string>
+    <string name="history_average_duration">Average Duration</string>
+    <string name="history_success_rate">Success Rate</string>
+    <string name="history_most_used_drugs">Most Used Drugs</string>
+    <string name="history_daily_average">Daily Average</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_general">General</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_api">API Settings</string>
+    <string name="settings_api_key">API Key</string>
+    <string name="settings_database">Database</string>
+    <string name="settings_database_sync">Database Synchronization</string>
+    <string name="settings_windows_integration">Windows Integration</string>
+    <string name="settings_timing_profile">Timing Profile</string>
+    <string name="settings_auto_capture">Auto Capture</string>
+    <string name="settings_voice_commands">Voice Commands</string>
+    <string name="settings_backup">Backup</string>
+    <string name="settings_about">About</string>
+    <string name="settings_help">Help</string>
+    <string name="settings_contact">Contact</string>
+    
+    <!-- Themes -->
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_auto">Auto</string>
+    
+    <!-- Languages -->
+    <string name="language_turkish">Türkçe</string>
+    <string name="language_english">English</string>
+    <string name="language_auto">Auto</string>
+    
+    <!-- Timing Profiles -->
+    <string name="timing_conservative">Conservative</string>
+    <string name="timing_standard">Standard</string>
+    <string name="timing_aggressive">Aggressive</string>
+    <string name="timing_adaptive">Adaptive</string>
+    
+    <!-- Error Messages -->
+    <string name="error_camera_permission">Camera permission required</string>
+    <string name="error_microphone_permission">Microphone permission required</string>
+    <string name="error_storage_permission">Storage permission required</string>
+    <string name="error_network">Network connection error</string>
+    <string name="error_api_key">Invalid API key</string>
+    <string name="error_database_load">Failed to load database</string>
+    <string name="error_ocr_failed">Text recognition failed</string>
+    <string name="error_windows_connection">Windows connection failed</string>
+    <string name="error_session_save">Failed to save session</string>
+    <string name="error_export_failed">Export failed</string>
+    <string name="error_unknown">Unknown error</string>
+    
+    <!-- Success Messages -->
+    <string name="success_drug_added">Drug added successfully</string>
+    <string name="success_prescription_saved">Prescription saved</string>
+    <string name="success_session_completed">Session completed</string>
+    <string name="success_export_completed">Export completed</string>
+    <string name="success_database_synced">Database synchronized</string>
+    <string name="success_backup_created">Backup created</string>
+    <string name="success_settings_saved">Settings saved</string>
+    
+    <!-- Common Actions -->
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_share">Share</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_back">Back</string>
+    <string name="action_next">Next</string>
+    <string name="action_finish">Finish</string>
+    <string name="action_close">Close</string>
+    <string name="action_help">Help</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_search">Search</string>
+    <string name="action_filter">Filter</string>
+    <string name="action_sort">Sort</string>
+    <string name="action_view_details">View Details</string>
+    
+    <!-- Status Messages -->
+    <string name="status_loading">Loading...</string>
+    <string name="status_processing">Processing...</string>
+    <string name="status_saving">Saving...</string>
+    <string name="status_connecting">Connecting...</string>
+    <string name="status_syncing">Synchronizing...</string>
+    <string name="status_complete">Complete</string>
+    <string name="status_failed">Failed</string>
+    <string name="status_ready">Ready</string>
+    <string name="status_active">Active</string>
+    <string name="status_inactive">Inactive</string>
+    
+    <!-- Accessibility -->
+    <string name="accessibility_camera_button">Camera button</string>
+    <string name="accessibility_capture_button">Capture button</string>
+    <string name="accessibility_flash_button">Flash button</string>
+    <string name="accessibility_gallery_button">Gallery button</string>
+    <string name="accessibility_microphone_button">Microphone button</string>
+    <string name="accessibility_voice_status">Voice command status</string>
+    <string name="accessibility_confidence_indicator">Confidence level indicator</string>
+    <string name="accessibility_progress_indicator">Progress indicator</string>
+    <string name="accessibility_drug_item">Drug item</string>
+    <string name="accessibility_prescription_item">Prescription item</string>
+    <string name="accessibility_navigation_button">Navigation button</string>
+    
+    <!-- Turkish Medical Terminology (English equivalents) -->
+    <string name="medical_prescription">Prescription</string>
+    <string name="medical_doctor">Doctor</string>
+    <string name="medical_patient">Patient</string>
+    <string name="medical_pharmacy">Pharmacy</string>
+    <string name="medical_drug">Drug</string>
+    <string name="medical_medicine">Medicine</string>
+    <string name="medical_treatment">Treatment</string>
+    <string name="medical_diagnosis">Diagnosis</string>
+    <string name="medical_dosage">Dosage</string>
+    <string name="medical_frequency">Frequency</string>
+    <string name="medical_duration">Duration</string>
+    <string name="medical_side_effects">Side Effects</string>
+    <string name="medical_contraindications">Contraindications</string>
+    <string name="medical_interactions">Interactions</string>
+    <string name="medical_generic">Generic</string>
+    <string name="medical_brand">Brand</string>
+    <string name="medical_equivalent">Equivalent</string>
+    
+    <!-- Validation Messages -->
+    <string name="validation_required_field">This field is required</string>
+    <string name="validation_invalid_format">Invalid format</string>
+    <string name="validation_min_length">Minimum %1$d characters</string>
+    <string name="validation_max_length">Maximum %1$d characters</string>
+    <string name="validation_numeric_only">Enter numbers only</string>
+    <string name="validation_email_invalid">Invalid email address</string>
+    <string name="validation_phone_invalid">Invalid phone number</string>
+    <string name="validation_tc_invalid">Invalid TC identity number</string>
+    
+    <!-- Turkish Healthcare System (English equivalents) -->
+    <string name="sgk_active">SGK Active</string>
+    <string name="sgk_inactive">SGK Inactive</string>
+    <string name="health_ministry">Ministry of Health</string>
+    <string name="turkish_medicine_agency">Turkish Medicines and Medical Devices Agency</string>
+    <string name="prescription_system">Prescription Tracking System</string>
+    <string name="e_prescription">E-Prescription</string>
+    <string name="e_signature">E-Signature</string>
+    <string name="healthcare_professional">Healthcare Professional</string>
+    
+</resources>

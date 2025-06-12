@@ -1,39 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Box Name OCR</string>
+    <!-- English strings (fallback) -->
+    
+    <!-- App Information -->
+    <string name="app_name">İlaç Kutu OCR</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">Ana Sayfa</string>
+    <string name="nav_camera">Kamera</string>
+    <string name="nav_batch">Reçete</string>
+    <string name="nav_settings">Ayarlar</string>
+    <string name="nav_templates">Şablonlar</string>
+    <string name="nav_voice">Sesli Komut</string>
+    <string name="nav_history">Geçmiş</string>
+    <string name="nav_verification">Doğrulama</string>
+    <string name="nav_enhanced">Gelişmiş Eşleştirme</string>
+    <string name="nav_recovery">Kurtarma</string>
+    
+    <!-- Home Screen -->
+    <string name="home_title">İlaç Kutu Tanıma Sistemi</string>
+    <string name="home_subtitle">Türk Sağlık Bakanlığı Onaylı</string>
+    <string name="home_start_scanning">Tarama Başlat</string>
+    <string name="home_prescription_mode">Reçete Modu</string>
+    <string name="home_quick_scan">Hızlı Tarama</string>
+    <string name="home_batch_scan">Toplu Tarama</string>
+    <string name="home_recent_activity">Son Aktiviteler</string>
+    <string name="home_daily_stats">Günlük İstatistikler</string>
+    <string name="home_database_status">Veritabanı Durumu</string>
+    <string name="home_loaded_drugs">Yüklenen İlaçlar</string>
+    <string name="home_server_status">Sunucu Durumu</string>
+    <string name="home_windows_connection">Windows Bağlantısı</string>
+    <string name="home_connected">Bağlı</string>
+    <string name="home_disconnected">Bağlantısız</string>
+    <string name="home_active">Aktif</string>
+    <string name="home_inactive">Pasif</string>
     
     <!-- Camera Screen -->
-    <string name="camera_permission_title">Camera Permission Required</string>
-    <string name="camera_permission_message">This app needs camera access to scan box labels</string>
-    <string name="grant_permission">Grant Permission</string>
-    <string name="permission_denied">Permission Denied</string>
-    <string name="capture_button">Capture</string>
-    <string name="torch_toggle">Toggle Flash</string>
+    <string name="camera_title">İlaç Kutusu Tarama</string>
+    <string name="camera_instructions">İlaç kutusunu kameraya doğrultun</string>
+    <string name="camera_smart_mode">Akıllı Mod</string>
+    <string name="camera_manual_mode">Manuel Mod</string>
+    <string name="camera_auto_capture">Otomatik Yakalama</string>
+    <string name="camera_capture_button">Yakala</string>
+    <string name="camera_gallery_button">Galeriden Seç</string>
+    <string name="camera_flash_button">Flaş</string>
+    <string name="camera_zoom_in">Yakınlaştır</string>
+    <string name="camera_zoom_out">Uzaklaştır</string>
+    <string name="camera_focus">Odakla</string>
+    <string name="camera_detecting">Algılanıyor...</string>
+    <string name="camera_processing">İşleniyor...</string>
+    <string name="camera_box_detected">Kutu Algılandı</string>
+    <string name="camera_text_stable">Metin Kararlı</string>
+    <string name="camera_ready_capture">Yakalamaya Hazır</string>
     
-    <!-- OCR Results -->
-    <string name="ocr_result_title">Scan Result</string>
-    <string name="scanned_text">Scanned Text:</string>
-    <string name="matched_text">Database Match:</string>
-    <string name="no_match">No match found</string>
-    <string name="copy_to_clipboard">Copy to Clipboard</string>
-    <string name="copied_success">Copied to clipboard!</string>
+    <!-- OCR Processing -->
+    <string name="ocr_processing">Metin Tanıma İşleniyor...</string>
+    <string name="ocr_success">Metin Başarıyla Tanındı</string>
+    <string name="ocr_failed">Metin Tanıma Başarısız</string>
+    <string name="ocr_retry">Tekrar Dene</string>
+    <string name="ocr_recognized_text">Tanınan Metin:</string>
+    <string name="ocr_confidence">Güven Seviyesi</string>
+    <string name="ocr_high_confidence">Yüksek Güven</string>
+    <string name="ocr_medium_confidence">Orta Güven</string>
+    <string name="ocr_low_confidence">Düşük Güven</string>
+    
+    <!-- Database Matching -->
+    <string name="matching_title">İlaç Eşleştirme</string>
+    <string name="matching_processing">Veritabanında Aranıyor...</string>
+    <string name="matching_found">İlaç Bulundu</string>
+    <string name="matching_not_found">İlaç Bulunamadı</string>
+    <string name="matching_multiple_found">Birden Fazla Eşleşme</string>
+    <string name="matching_confidence">Eşleşme Güveni</string>
+    <string name="matching_similarity">Benzerlik</string>
+    <string name="matching_algorithm">Algoritma</string>
+    <string name="matching_exact">Tam Eşleşme</string>
+    <string name="matching_partial">Kısmi Eşleşme</string>
+    <string name="matching_fuzzy">Benzer Eşleşme</string>
+    <string name="matching_phonetic">Fonetik Eşleşme</string>
+    
+    <!-- Drug Information -->
+    <string name="drug_name">İlaç Adı</string>
+    <string name="drug_code">İlaç Kodu</string>
+    <string name="drug_barcode">Barkod</string>
+    <string name="drug_active_ingredient">Etken Madde</string>
+    <string name="drug_price">Fiyat</string>
+    <string name="drug_atc_code">ATC Kodu</string>
+    <string name="drug_atc_name">ATC Adı</string>
+    <string name="drug_equivalent">Eşdeğer Grup</string>
+    <string name="drug_package_unit">Ambalaj Birimi</string>
+    <string name="drug_package_amount">Ambalaj Miktarı</string>
+    <string name="drug_prescription_type">Reçete Türü</string>
+    <string name="drug_sgk_active">SGK Aktif</string>
+    <string name="drug_details">İlaç Detayları</string>
+    <string name="drug_copy">Kopyala</string>
+    <string name="drug_edit">Düzenle</string>
+    <string name="drug_confirm">Onayla</string>
+    <string name="drug_reject">Reddet</string>
+    
+    <!-- Prescription Management -->
+    <string name="prescription_title">Reçete Yönetimi</string>
+    <string name="prescription_new">Yeni Reçete</string>
+    <string name="prescription_current">Mevcut Reçete</string>
+    <string name="prescription_add_drug">İlaç Ekle</string>
+    <string name="prescription_remove_drug">İlaç Çıkar</string>
+    <string name="prescription_drug_count">İlaç Sayısı</string>
+    <string name="prescription_total_price">Toplam Fiyat</string>
+    <string name="prescription_patient_info">Hasta Bilgileri</string>
+    <string name="prescription_patient_id">Hasta TC/ID</string>
+    <string name="prescription_patient_name">Hasta Adı</string>
+    <string name="prescription_session_id">Oturum ID</string>
+    <string name="prescription_start_time">Başlangıç Saati</string>
+    <string name="prescription_duration">Süre</string>
+    <string name="prescription_status">Durum</string>
+    <string name="prescription_save">Kaydet</string>
+    <string name="prescription_send">Gönder</string>
+    <string name="prescription_complete">Tamamla</string>
+    <string name="prescription_cancel">İptal</string>
+    
+    <!-- Batch Scanning -->
+    <string name="batch_title">Toplu Tarama</string>
+    <string name="batch_instruction">Birden fazla ilaç kutusunu sırayla tarayın</string>
+    <string name="batch_scan_count">Taranan: %1$d</string>
+    <string name="batch_queue_preview">Kuyruk Önizlemesi</string>
+    <string name="batch_next_drug">Sonraki İlaç</string>
+    <string name="batch_finish">Bitir</string>
+    <string name="batch_continue">Devam Et</string>
+    <string name="batch_clear">Temizle</string>
+    <string name="batch_progress">İlerleme</string>
+    <string name="batch_session_active">Oturum Aktif</string>
+    <string name="batch_session_complete">Oturum Tamamlandı</string>
+    
+    <!-- Templates -->
+    <string name="templates_title">Reçete Şablonları</string>
+    <string name="templates_subtitle">Yaygın hastalık kombinasyonları</string>
+    <string name="templates_search">Şablon Ara</string>
+    <string name="templates_category">Kategori</string>
+    <string name="templates_usage_count">Kullanım Sayısı</string>
+    <string name="templates_apply">Şablonu Uygula</string>
+    <string name="templates_preview">Önizleme</string>
+    <string name="templates_edit">Düzenle</string>
+    <string name="templates_diabetes">Diyabet</string>
+    <string name="templates_hypertension">Hipertansiyon</string>
+    <string name="templates_cardiovascular">Kardiyovasküler</string>
+    <string name="templates_respiratory">Solunum</string>
+    <string name="templates_gastrointestinal">Gastrointestinal</string>
+    <string name="templates_neurological">Nörolojik</string>
+    <string name="templates_infectious">Enfeksiyon</string>
+    <string name="templates_pain_management">Ağrı Yönetimi</string>
+    
+    <!-- Voice Commands -->
+    <string name="voice_title">Sesli Komutlar</string>
+    <string name="voice_start_listening">Dinlemeye Başla</string>
+    <string name="voice_stop_listening">Dinlemeyi Durdur</string>
+    <string name="voice_listening">Dinleniyor...</string>
+    <string name="voice_command_recognized">Komut Tanındı</string>
+    <string name="voice_command_not_recognized">Komut Tanınmadı</string>
+    <string name="voice_help">Sesli Yardım</string>
+    <string name="voice_commands_list">Mevcut Komutlar</string>
+    <string name="voice_enabled">Sesli Komutlar Aktif</string>
+    <string name="voice_disabled">Sesli Komutlar Pasif</string>
+    
+    <!-- History -->
+    <string name="history_title">Reçete Geçmişi</string>
+    <string name="history_subtitle">Geçmiş reçete kayıtları ve istatistikler</string>
+    <string name="history_today">Bugün</string>
+    <string name="history_yesterday">Dün</string>
+    <string name="history_this_week">Bu Hafta</string>
+    <string name="history_this_month">Bu Ay</string>
+    <string name="history_all_time">Tüm Zamanlar</string>
+    <string name="history_filter">Filtrele</string>
+    <string name="history_export">Dışa Aktar</string>
+    <string name="history_statistics">İstatistikler</string>
+    <string name="history_total_prescriptions">Toplam Reçete</string>
+    <string name="history_total_drugs">Toplam İlaç</string>
+    <string name="history_average_duration">Ortalama Süre</string>
+    <string name="history_success_rate">Başarı Oranı</string>
+    <string name="history_most_used_drugs">En Çok Kullanılan İlaçlar</string>
+    <string name="history_daily_average">Günlük Ortalama</string>
     
     <!-- Settings -->
-    <string name="api_key_hint">Enter your Gemini API key</string>
-    <string name="api_key_label">Gemini API Key</string>
-    <string name="save">Save</string>
-    <string name="test_api">Test API</string>
-    <string name="api_test_success">API connection successful!</string>
-    <string name="api_test_error">API connection failed</string>
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_general">Genel</string>
+    <string name="settings_language">Dil</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_notifications">Bildirimler</string>
+    <string name="settings_api">API Ayarları</string>
+    <string name="settings_api_key">API Anahtarı</string>
+    <string name="settings_database">Veritabanı</string>
+    <string name="settings_database_sync">Veritabanı Senkronizasyonu</string>
+    <string name="settings_windows_integration">Windows Entegrasyonu</string>
+    <string name="settings_timing_profile">Zamanlama Profili</string>
+    <string name="settings_auto_capture">Otomatik Yakalama</string>
+    <string name="settings_voice_commands">Sesli Komutlar</string>
+    <string name="settings_backup">Yedekleme</string>
+    <string name="settings_about">Hakkında</string>
+    <string name="settings_help">Yardım</string>
+    <string name="settings_contact">İletişim</string>
     
-    <!-- Database -->
-    <string name="load_database">Load Database</string>
-    <string name="database_loaded">Database loaded: %d items</string>
-    <string name="database_error">Failed to load database</string>
+    <!-- Themes -->
+    <string name="theme_system">Sistem</string>
+    <string name="theme_light">Açık</string>
+    <string name="theme_dark">Koyu</string>
+    <string name="theme_auto">Otomatik</string>
     
-    <!-- General -->
-    <string name="close">Close</string>
-    <string name="retry">Retry</string>
-    <string name="settings">Settings</string>
-    <string name="processing">Processing...</string>
-    <string name="error_occurred">An error occurred</string>
+    <!-- Languages -->
+    <string name="language_turkish">Türkçe</string>
+    <string name="language_english">English</string>
+    <string name="language_auto">Otomatik</string>
+    
+    <!-- Timing Profiles -->
+    <string name="timing_conservative">Muhafazakar</string>
+    <string name="timing_standard">Standart</string>
+    <string name="timing_aggressive">Agresif</string>
+    <string name="timing_adaptive">Adaptif</string>
+    
+    <!-- Error Messages -->
+    <string name="error_camera_permission">Kamera izni gerekli</string>
+    <string name="error_microphone_permission">Mikrofon izni gerekli</string>
+    <string name="error_storage_permission">Depolama izni gerekli</string>
+    <string name="error_network">Ağ bağlantısı hatası</string>
+    <string name="error_api_key">Geçersiz API anahtarı</string>
+    <string name="error_database_load">Veritabanı yüklenemedi</string>
+    <string name="error_ocr_failed">Metin tanıma başarısız</string>
+    <string name="error_windows_connection">Windows bağlantısı başarısız</string>
+    <string name="error_session_save">Oturum kaydedilemedi</string>
+    <string name="error_export_failed">Dışa aktarma başarısız</string>
+    <string name="error_unknown">Bilinmeyen hata</string>
+    
+    <!-- Success Messages -->
+    <string name="success_drug_added">İlaç başarıyla eklendi</string>
+    <string name="success_prescription_saved">Reçete kaydedildi</string>
+    <string name="success_session_completed">Oturum tamamlandı</string>
+    <string name="success_export_completed">Dışa aktarma tamamlandı</string>
+    <string name="success_database_synced">Veritabanı senkronize edildi</string>
+    <string name="success_backup_created">Yedek oluşturuldu</string>
+    <string name="success_settings_saved">Ayarlar kaydedildi</string>
+    
+    <!-- Common Actions -->
+    <string name="action_ok">Tamam</string>
+    <string name="action_cancel">İptal</string>
+    <string name="action_save">Kaydet</string>
+    <string name="action_delete">Sil</string>
+    <string name="action_edit">Düzenle</string>
+    <string name="action_copy">Kopyala</string>
+    <string name="action_share">Paylaş</string>
+    <string name="action_retry">Tekrar Dene</string>
+    <string name="action_continue">Devam Et</string>
+    <string name="action_back">Geri</string>
+    <string name="action_next">İleri</string>
+    <string name="action_finish">Bitir</string>
+    <string name="action_close">Kapat</string>
+    <string name="action_help">Yardım</string>
+    <string name="action_settings">Ayarlar</string>
+    <string name="action_refresh">Yenile</string>
+    <string name="action_search">Ara</string>
+    <string name="action_filter">Filtrele</string>
+    <string name="action_sort">Sırala</string>
+    <string name="action_view_details">Detayları Görüntüle</string>
+    
+    <!-- Status Messages -->
+    <string name="status_loading">Yükleniyor...</string>
+    <string name="status_processing">İşleniyor...</string>
+    <string name="status_saving">Kaydediliyor...</string>
+    <string name="status_connecting">Bağlanıyor...</string>
+    <string name="status_syncing">Senkronize ediliyor...</string>
+    <string name="status_complete">Tamamlandı</string>
+    <string name="status_failed">Başarısız</string>
+    <string name="status_ready">Hazır</string>
+    <string name="status_active">Aktif</string>
+    <string name="status_inactive">Pasif</string>
+    
+    <!-- Accessibility -->
+    <string name="accessibility_camera_button">Kamera düğmesi</string>
+    <string name="accessibility_capture_button">Yakalama düğmesi</string>
+    <string name="accessibility_flash_button">Flaş düğmesi</string>
+    <string name="accessibility_gallery_button">Galeri düğmesi</string>
+    <string name="accessibility_microphone_button">Mikrofon düğmesi</string>
+    <string name="accessibility_voice_status">Sesli komut durumu</string>
+    <string name="accessibility_confidence_indicator">Güven seviyesi göstergesi</string>
+    <string name="accessibility_progress_indicator">İlerleme göstergesi</string>
+    <string name="accessibility_drug_item">İlaç öğesi</string>
+    <string name="accessibility_prescription_item">Reçete öğesi</string>
+    <string name="accessibility_navigation_button">Navigasyon düğmesi</string>
+    
+    <!-- Turkish Medical Terminology -->
+    <string name="medical_prescription">Reçete</string>
+    <string name="medical_doctor">Doktor</string>
+    <string name="medical_patient">Hasta</string>
+    <string name="medical_pharmacy">Eczane</string>
+    <string name="medical_drug">İlaç</string>
+    <string name="medical_medicine">Tıp</string>
+    <string name="medical_treatment">Tedavi</string>
+    <string name="medical_diagnosis">Tanı</string>
+    <string name="medical_dosage">Doz</string>
+    <string name="medical_frequency">Sıklık</string>
+    <string name="medical_duration">Süre</string>
+    <string name="medical_side_effects">Yan Etkiler</string>
+    <string name="medical_contraindications">Kontrendikasyonlar</string>
+    <string name="medical_interactions">Etkileşimler</string>
+    <string name="medical_generic">Jenerik</string>
+    <string name="medical_brand">Marka</string>
+    <string name="medical_equivalent">Eşdeğer</string>
+    
+    <!-- Validation Messages -->
+    <string name="validation_required_field">Bu alan zorunludur</string>
+    <string name="validation_invalid_format">Geçersiz format</string>
+    <string name="validation_min_length">Minimum %1$d karakter</string>
+    <string name="validation_max_length">Maksimum %1$d karakter</string>
+    <string name="validation_numeric_only">Sadece sayı giriniz</string>
+    <string name="validation_email_invalid">Geçersiz e-posta adresi</string>
+    <string name="validation_phone_invalid">Geçersiz telefon numarası</string>
+    <string name="validation_tc_invalid">Geçersiz TC kimlik numarası</string>
+    
+    <!-- Turkish Healthcare System -->
+    <string name="sgk_active">SGK Aktif</string>
+    <string name="sgk_inactive">SGK Pasif</string>
+    <string name="health_ministry">Sağlık Bakanlığı</string>
+    <string name="turkish_medicine_agency">Türkiye İlaç ve Tıbbi Cihaz Kurumu</string>
+    <string name="prescription_system">Reçete Takip Sistemi</string>
+    <string name="e_prescription">E-Reçete</string>
+    <string name="e_signature">E-İmza</string>
+    <string name="healthcare_professional">Sağlık Profesyoneli</string>
+    
 </resources>

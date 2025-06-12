@@ -1,16 +1,87 @@
 package com.boxocr.simple.di
 
+import android.content.Context
+import androidx.room.Room
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import com.boxocr.simple.database.BoxOCRDatabase
+import com.boxocr.simple.database.DatabaseCallback
+import javax.inject.Provider
+import javax.inject.Singleton
 
 /**
- * Repository Module - All repositories are already provided via @Inject constructor
- * This module exists for any additional repository bindings if needed
+ * Repository Module - Database and repository bindings
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
-    // All repositories use @Inject constructor, so no explicit bindings needed
-    // Add any interface bindings here if repositories implement interfaces
+    
+    /**
+     * Provide application scope for database operations
+     */
+    @Provides
+    @Singleton
+    fun provideApplicationScope(): CoroutineScope {
+        return CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    }
+    
+    /**
+     * Provide database callback for initialization
+     */
+    @Provides
+    @Singleton
+    fun provideDatabaseCallback(
+        database: Provider<BoxOCRDatabase>,
+        applicationScope: CoroutineScope
+    ): DatabaseCallback {
+        return DatabaseCallback(database, applicationScope)
+    }
+    
+    /**
+     * Provide Room database instance
+     */
+    @Provides
+    @Singleton
+    fun provideDatabase(
+        @ApplicationContext context: Context,
+        callback: DatabaseCallback
+    ): BoxOCRDatabase {
+        return Room.databaseBuilder(
+            context.applicationContext,
+            BoxOCRDatabase::class.java,
+            BoxOCRDatabase.DATABASE_NAME
+        )
+        .addCallback(callback)
+        .build()
+    }
+    
+    /**
+     * Provide Drug DAO
+     */
+    @Provides
+    fun provideDrugDao(database: BoxOCRDatabase) = database.drugDao()
+    
+    /**
+     * Provide Scan History DAO
+     */
+    @Provides
+    fun provideScanHistoryDao(database: BoxOCRDatabase) = database.scanHistoryDao()
+    
+    /**
+     * Provide Prescription Session DAO
+     */
+    @Provides
+    fun providePrescriptionSessionDao(database: BoxOCRDatabase) = database.prescriptionSessionDao()
+    
+    /**
+     * Provide Drug Matching Stats DAO
+     */
+    @Provides
+    fun provideDrugMatchingStatsDao(database: BoxOCRDatabase) = database.drugMatchingStatsDao()
 }
