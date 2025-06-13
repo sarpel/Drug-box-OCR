@@ -8,6 +8,10 @@ import androidx.room.TypeConverters
 import com.boxocr.simple.ui.history.PrescriptionStatus
 import com.boxocr.simple.repository.TimingProfile
 import com.boxocr.simple.database.VisualFeatureType
+import com.boxocr.simple.database.ImageSource
+import com.boxocr.simple.database.DrugBoxCondition
+import com.boxocr.simple.database.DrugBoxAngle
+import com.boxocr.simple.database.DrugBoxLighting
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.util.UUID
@@ -624,12 +628,7 @@ data class MultiDrug(
 
 
 
-enum class ImageSource {
-    CAMERA,
-    GALLERY,
-    FILE_IMPORT,
-    BATCH_SCAN
-}
+// ImageSource enum imported from VisualDrugDatabaseEntities.kt
 
 // ============== VISUAL DETECTION MODELS ==============
 
@@ -806,13 +805,7 @@ data class MultiDrugScannerState(
 
 // ============== DRUG BOX CONDITIONS ==============
 
-enum class DrugBoxCondition {
-    GOOD,
-    WORN,
-    DAMAGED,
-    SEVERELY_DAMAGED,
-    UNKNOWN
-}
+// DrugBoxCondition enum imported from VisualDrugDatabaseEntities.kt
 
 // ============== VOICE COMMAND MODELS ==============
 
@@ -1168,3 +1161,353 @@ data class PatientContext(
     val conditions: List<String> = emptyList(),
     val notes: String = ""
 )
+// ============== MISSING AI MODEL CLASSES ==============
+
+@Serializable
+data class MedicalAnalysisResult(
+    val analysis: String,
+    val urgency: UrgencyLevel,
+    val evidence: EvidenceLevel,
+    val risk: RiskLevel,
+    val recommendations: List<String> = emptyList(),
+    val confidence: Float = 0f
+)
+
+@Serializable
+enum class UrgencyLevel {
+    LOW, MEDIUM, HIGH, CRITICAL
+}
+
+@Serializable
+enum class EvidenceLevel {
+    LIMITED, MODERATE, STRONG, CONCLUSIVE
+}
+
+@Serializable
+enum class RiskLevel {
+    MINIMAL, LOW, MODERATE, HIGH, SEVERE
+}
+
+@Serializable
+data class PatientProfile(
+    val age: Int,
+    val weight: Double? = null,
+    val allergies: List<String> = emptyList(),
+    val conditions: List<String> = emptyList(),
+    val medications: List<String> = emptyList()
+)
+
+@Serializable
+data class DrugInteractionAnalysis(
+    val interactions: List<String>,
+    val severity: RiskLevel,
+    val recommendations: List<String> = emptyList()
+)
+
+@Serializable
+data class MedicalResearchResult(
+    val findings: String,
+    val sources: List<String> = emptyList(),
+    val confidence: Float = 0f
+)
+
+@Serializable
+data class TurkishMedicalKnowledge(
+    val content: String,
+    val category: String,
+    val verified: Boolean = false
+)
+
+@Serializable
+data class MedicalConsensus(
+    val recommendation: String,
+    val consensus: Float,
+    val sources: List<String> = emptyList()
+)
+
+@Serializable
+data class ClinicalCase(
+    val id: String,
+    val description: String,
+    val diagnosis: String? = null,
+    val treatment: String? = null
+)
+
+@Serializable
+data class MedicalConsultation(
+    val id: String,
+    val question: String,
+    val response: String,
+    val urgency: UrgencyLevel,
+    val confidence: Float = 0f
+)
+
+@Serializable
+data class AIProviderStatus(
+    val isOnline: Boolean,
+    val latency: Long = 0,
+    val lastCheck: Long = System.currentTimeMillis()
+)
+
+@Serializable
+data class ModelInferenceResult(
+    val result: String,
+    val confidence: Float,
+    val executionTime: Long,
+    val type: ModelInferenceType
+)
+
+@Serializable
+enum class ModelInferenceType {
+    TEXT_ANALYSIS, IMAGE_PROCESSING, HYBRID
+}
+
+@Serializable
+enum class AIProviderType {
+    OPENAI, CLAUDE, GEMINI, CUSTOM_API, LOCAL_MODEL
+}
+
+@Serializable
+enum class RequestFormat {
+    JSON, XML, FORM_DATA, CUSTOM
+}
+
+@Serializable
+enum class ResponseFormat {
+    JSON, XML, TEXT, CUSTOM
+}
+
+@Serializable
+data class LocalModelPerformance(
+    val accuracy: Float,
+    val inferenceTime: Long,
+    val memoryUsage: Long
+)
+
+@Serializable
+data class CustomAIResponse(
+    val content: String,
+    val confidence: Float = 0f,
+    val executionTime: Long = 0,
+    val metadata: Map<String, String> = emptyMap()
+)
+
+@Serializable
+data class LocalInferenceResult(
+    val output: String,
+    val confidence: Float,
+    val processingTime: Long,
+    val type: ModelInferenceType
+)
+
+@Serializable
+data class AIConsensusResult(
+    val consensusResponse: String,
+    val averageConfidence: Float,
+    val totalExecutionTime: Long,
+    val type: ModelInferenceType
+)
+
+@Serializable
+data class ModelResult(
+    val modelName: String,
+    val response: String,
+    val confidence: Float,
+    val executionTime: Long,
+    val type: ModelInferenceType
+)
+
+// ============== ADDITIONAL MISSING CLASSES ==============
+
+@Serializable
+data class CustomAIProviderConfig(
+    val name: String,
+    val cloudProvider: String,
+    val endpoint: String,
+    val apiKey: String,
+    val authHeaders: Map<String, String> = emptyMap(),
+    val requestFormat: RequestFormat,
+    val responseFormat: ResponseFormat,
+    val modelParameters: Map<String, String> = emptyMap(),
+    val turkishMedicalOptimized: Boolean = false,
+    val maxTokens: Int = 1000,
+    val timeout: Long = 30000
+)
+
+@Serializable
+data class LocalAIModelConfig(
+    val name: String,
+    val description: String,
+    val modelType: LocalModelType,
+    val filePath: String,
+    val version: String,
+    val turkishMedicalSpecialized: Boolean = false,
+    val inputShape: List<Int> = emptyList(),
+    val outputShape: List<Int> = emptyList(),
+    val preprocessingConfig: Map<String, String> = emptyMap(),
+    val postprocessingConfig: Map<String, String> = emptyMap()
+)
+
+@Serializable
+data class PrivateCloudAIConfig(
+    val providerName: String,
+    val cloudProvider: String,
+    val endpoint: String,
+    val apiKey: String,
+    val authHeaders: Map<String, String> = emptyMap(),
+    val requestFormat: RequestFormat,
+    val responseFormat: ResponseFormat,
+    val modelParameters: Map<String, String> = emptyMap(),
+    val turkishMedicalOptimized: Boolean = false,
+    val maxTokens: Int = 1000,
+    val timeout: Long = 30000
+)
+
+@Serializable
+data class TurkishMedicalModelInfo(
+    val name: String,
+    val description: String,
+    val downloadUrl: String,
+    val fileSize: Long,
+    val checksum: String,
+    val turkishMedicalSpecialized: Boolean = true
+)
+
+
+// ============== MISSING FEATURE DATA CLASSES ==============
+
+@Serializable
+data class FeatureData(
+    val keypoints: List<List<Float>> = emptyList(),
+    val descriptors: List<List<Float>> = emptyList(),
+    val histogram: List<Float> = emptyList(),
+    val edges: List<List<Float>> = emptyList(),
+    val contours: List<List<Float>> = emptyList(),
+    val textLayout: Map<String, Float> = emptyMap(),
+    val metadata: Map<String, String> = emptyMap()
+)
+
+// ============== MISSING ENUM VALUES ==============
+
+@Serializable
+enum class ScanMethod {
+    VISUAL_RECOVERY,
+    VISUAL_MATCH, 
+    OCR_ONLY,
+    HYBRID
+}
+
+// ============== MISSING VISUAL DATABASE ENUMS ==============
+
+@Serializable
+enum class DrugBoxAngle {
+    FRONT,
+    LEFT_SIDE,
+    RIGHT_SIDE,
+    TOP,
+    BOTTOM,
+    ANGLED,
+    UNKNOWN
+}
+
+@Serializable
+enum class DrugBoxLighting {
+    PERFECT,
+    NORMAL,
+    OVEREXPOSED,
+    UNDEREXPOSED,
+    LOW_CONTRAST,
+    UNKNOWN
+}
+
+// ============== MISSING CONDITION ENUM VALUES ==============
+
+@Serializable
+enum class DrugBoxCondition {
+    PERFECT,
+    GOOD,
+    WORN,
+    DAMAGED,
+    SEVERELY_DAMAGED,
+    UNKNOWN
+}
+
+// ============== MISSING WINDOWS AUTOMATION CLASSES ==============
+
+@Serializable
+data class WindowDetectionResult(
+    val windowTitle: String,
+    val processName: String,
+    val isTargetWindow: Boolean = false
+)
+
+@Serializable
+data class WindowsAutomationData(
+    val sessionId: String,
+    val windowTitle: String,
+    val fieldMapping: Map<String, String> = emptyMap(),
+    val completedCount: Int = 0,
+    val failedCount: Int = 0
+)
+
+@Serializable
+data class WindowsDrugData(
+    val name: String,
+    val dosage: String = "",
+    val frequency: String = ""
+)
+
+@Serializable
+data class BatchDrugMetadata(
+    val drugName: String,
+    val scannedText: String,
+    val confidence: Float,
+    val processingTime: Long,
+    val source: String = "camera"
+)
+
+// ============== MISSING AI CLASSES ==============
+
+@Serializable
+data class AIIntelligenceStatus(
+    val overallReady: Boolean,
+    val systems: Map<String, Boolean> = emptyMap(),
+    val lastUpdate: Long = System.currentTimeMillis()
+)
+
+@Serializable
+data class AIIntelligenceAnalytics(
+    val totalQueries: Int,
+    val averageResponseTime: Long,
+    val accuracy: Float,
+    val lastDay: Map<String, Int> = emptyMap()
+)
+
+@Serializable
+data class TurkishMedicalResponse(
+    val turkishResponse: String,
+    val confidence: Float,
+    val actionRequired: TurkishMedicalAction? = null
+)
+
+@Serializable
+enum class TurkishMedicalAction {
+    IMMEDIATE_ATTENTION,
+    SCHEDULE_APPOINTMENT,
+    MEDICATION_REVIEW,
+    DIET_MODIFICATION,
+    LIFESTYLE_CHANGE,
+    NO_ACTION_NEEDED
+}
+
+@Serializable
+data class AIRecommendation(
+    val message: String,
+    val severity: AISeverity,
+    val actionRequired: TurkishMedicalAction? = null
+)
+
+@Serializable
+enum class AISeverity {
+    INFO, WARNING, URGENT, CRITICAL
+}

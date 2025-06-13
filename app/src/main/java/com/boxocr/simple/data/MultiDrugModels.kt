@@ -2,6 +2,11 @@ package com.boxocr.simple.data
 
 import android.graphics.Bitmap
 import kotlinx.serialization.Serializable
+// Import from AppModels.kt and VisualDrugDatabaseEntities.kt
+import com.boxocr.simple.database.ImageSource
+import com.boxocr.simple.database.DrugBoxCondition
+import com.boxocr.simple.database.DrugBoxAngle
+import com.boxocr.simple.database.DrugBoxLighting
 
 @Serializable
 data class MultiDrugResult(
@@ -38,21 +43,7 @@ data class DrugDatabaseMatch(
     val source: String
 )
 
-@Serializable
-data class DamagedTextRecoveryResult(
-    val recoveredText: String,
-    val confidence: Float,
-    val recoveryMethod: String,
-    val method: String
-)
-
-@Serializable
-data class BatchIntegrationResult(
-    val sessionId: String,
-    val totalItems: Int,
-    val processedItems: Int,
-    val successfulItems: Int
-)
+// Removed duplicate class definitions - using canonical versions from AppModels.kt and VisualDrugDatabaseEntities.kt
 
 @Serializable
 data class BatchSession(
@@ -95,22 +86,6 @@ data class VisualSimilarityMatch(
 
 enum class EnhancementMethod {
     NONE, OCR_ENHANCEMENT, VISUAL_MATCHING, AI_CORRECTION, MANUAL_CORRECTION
-}
-
-enum class ImageSource {
-    CAMERA, GALLERY, BATCH_SCAN, FILE_IMPORT
-}
-
-enum class DrugBoxCondition {
-    EXCELLENT, GOOD, FAIR, POOR, DAMAGED
-}
-
-enum class DrugBoxAngle {
-    FRONT, SIDE, BACK, ANGLED
-}
-
-enum class DrugBoxLighting {
-    OPTIMAL, GOOD, POOR, VERY_POOR
 }
 
 // Extension functions for convenience
