@@ -162,6 +162,7 @@ class CustomAIIntegrationRepository @Inject constructor(
                 LocalModelType.ONNX -> loadONNXModel(modelFile)
                 LocalModelType.CUSTOM_BINARY -> loadCustomBinaryModel(modelFile)
                 LocalModelType.PYTORCH_MOBILE -> loadPyTorchMobileModel(modelFile)
+                else -> throw IllegalArgumentException("Unsupported model type: ${modelConfig.modelType}")
             }
             
             val localModel = LocalAIModel(

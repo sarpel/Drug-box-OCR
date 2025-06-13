@@ -1112,3 +1112,62 @@ fun BatchProcessingPhase.isReadyForProcessing(): Boolean {
            verifiedResults.isNotEmpty() &&
            batchSessionId != null
 }
+
+// Missing classes for AI integration
+@Serializable
+data class MedicalAnalysisResult(
+    val analysisId: String,
+    val confidence: Float,
+    val findings: List<String>,
+    val recommendations: List<String>,
+    val severity: String,
+    val processingTimeMs: Long,
+    val metadata: Map<String, String> = emptyMap()
+)
+
+@Serializable
+data class CustomAIConfiguration(
+    val configId: String,
+    val name: String,
+    val provider: String,
+    val apiKey: String = "",
+    val baseUrl: String = "",
+    val model: String = "",
+    val parameters: Map<String, String> = emptyMap(),
+    val isEnabled: Boolean = true,
+    val priority: Int = 0
+)
+
+@Serializable
+data class LocalAIModel(
+    val modelId: String,
+    val name: String,
+    val filePath: String,
+    val modelType: String,
+    val version: String,
+    val size: Long,
+    val isLoaded: Boolean = false,
+    val capabilities: List<String> = emptyList(),
+    val metadata: Map<String, String> = emptyMap()
+)
+
+@Serializable
+data class PatientContext(
+    val patientId: String,
+    val name: String,
+    val age: Int?,
+    val medicalHistory: List<String> = emptyList(),
+    val currentMedications: List<String> = emptyList(),
+    val allergies: List<String> = emptyList(),
+    val conditions: List<String> = emptyList(),
+    val notes: String = ""
+)
+
+enum class VisualFeatureType {
+    SIFT_FEATURES,
+    COLOR_HISTOGRAM,
+    TEXT_LAYOUT,
+    EDGE_FEATURES,
+    SHAPE_FEATURES,
+    TEXTURE_FEATURES
+}

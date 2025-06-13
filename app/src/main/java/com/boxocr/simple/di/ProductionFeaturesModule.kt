@@ -32,10 +32,8 @@ object ProductionFeaturesModule {
      */
     @Provides
     @Singleton
-    fun provideAdvancedAIModelsRepository(
-        @ApplicationContext context: Context
-    ): AdvancedAIModelsRepository {
-        return AdvancedAIModelsRepository(context)
+    fun provideAdvancedAIModelsRepository(): AdvancedAIModelsRepository {
+        return AdvancedAIModelsRepository()
     }
 
     /**
