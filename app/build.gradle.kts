@@ -125,6 +125,14 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.6")
     implementation("androidx.navigation:navigation-runtime-ktx:2.7.6")
 
+    // Missing dependencies for compilation fixes
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+    implementation("io.coil-kt:coil:2.5.0")
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("org.apache.poi:poi:5.2.4")
+    implementation("org.apache.poi:poi-ooxml:5.2.4")
+    implementation("org.apache.poi:poi-scratchpad:5.2.4")
+
     // Hilt Dependency Injection
     implementation("com.google.dagger:hilt-android:2.48.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")

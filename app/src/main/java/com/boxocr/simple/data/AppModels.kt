@@ -617,52 +617,11 @@ data class MultiDrug(
     val drugDatabaseMatch: TurkishDrugInfo? get() = matchedDrugInfo
 }
 
-data class MultiDrugResult(
-    val id: String = UUID.randomUUID().toString(),
-    val name: String,
-    val confidence: Float,
-    val boundingBox: android.graphics.Rect? = null,
-    val croppedImage: Bitmap? = null,
-    val ocrText: String = "",
-    val matchedDrugInfo: TurkishDrugInfo? = null,
-    val visualMatch: Boolean = false,
-    val isVerified: Boolean = false,
-    val correctedName: String? = null,
-    val processingTimeMs: Long = 0L,
-    val source: ImageSource = ImageSource.CAMERA,
-    val timestamp: Long = System.currentTimeMillis()
-) {
-    val finalDrugName: String get() = correctedName ?: name
-    val finalConfidence: Float get() = if (isVerified) 1.0f else confidence
-}
 
-data class MultiDrugScanResult(
-    val sessionId: String,
-    val scannedDrugs: List<MultiDrug>,
-    val timestamp: Long = System.currentTimeMillis(),
-    val drugCount: Int = scannedDrugs.size,
-    val averageConfidence: Float = scannedDrugs.map { it.confidence }.average().toFloat(),
-    val processingTime: Long = 0L,
-    val source: ImageSource = ImageSource.CAMERA,
-    val success: Boolean = scannedDrugs.isNotEmpty()
-)
 
-data class EnhancedDrugResult(
-    val originalDrug: MultiDrug,
-    val finalDrugName: String,
-    val finalConfidence: Float,
-    val enhancementMethod: EnhancementMethod,
-    val originalRegion: String,
-    val processingTime: Long,
-    val drugDatabaseMatch: TurkishDrugInfo? = null
-)
 
-enum class EnhancementMethod {
-    OCR_ONLY,
-    VISUAL_MATCH,
-    VISUAL_RECOVERY,
-    MANUAL_CORRECTION
-}
+
+
 
 enum class ImageSource {
     CAMERA,
