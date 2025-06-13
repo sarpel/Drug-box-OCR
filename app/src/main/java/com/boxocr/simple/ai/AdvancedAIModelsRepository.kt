@@ -4,6 +4,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.boxocr.simple.data.MedicalAnalysisResult
+import com.boxocr.simple.data.UrgencyLevel
+import com.boxocr.simple.data.EvidenceLevel
+import com.boxocr.simple.data.RiskLevel
+import com.boxocr.simple.data.PatientContext
+import com.boxocr.simple.data.PatientProfile
+import com.boxocr.simple.data.DrugInteractionAnalysis
+import com.boxocr.simple.data.MedicalResearchResult
+import com.boxocr.simple.data.TurkishMedicalKnowledge
+import com.boxocr.simple.data.MedicalConsensus
+import com.boxocr.simple.data.ClinicalCase
+import com.boxocr.simple.data.MedicalConsultation
 
 @Singleton
 class AdvancedAIModelsRepository @Inject constructor() {
@@ -16,90 +28,98 @@ class AdvancedAIModelsRepository @Inject constructor() {
 
     suspend fun analyzeWithGPT4(query: String): MedicalAnalysisResult {
         return MedicalAnalysisResult(
-            analysis = "GPT-4 analysis for: $query",
+            drugName = "GPT-4 Analysis",
+            dosageInfo = null,
+            medicalCategory = "AI Analysis", 
             confidence = 0.9f,
             urgencyLevel = UrgencyLevel.MODERATE,
             evidenceLevel = EvidenceLevel.HIGH,
-            riskLevel = RiskLevel(level = "Medium", description = "Standard medical consultation recommended")
+            riskAssessment = RiskLevel.MODERATE
         )
     }
 
     suspend fun analyzeWithClaude(query: String): MedicalAnalysisResult {
         return MedicalAnalysisResult(
-            analysis = "Claude analysis for: $query",
+            drugName = "Claude Analysis",
+            dosageInfo = null,
+            medicalCategory = "AI Analysis",
             confidence = 0.85f,
-            urgencyLevel = UrgencyLevel.LOW,
-            evidenceLevel = EvidenceLevel.MEDIUM,
-            riskLevel = RiskLevel(level = "Low", description = "General information provided")
+            urgencyLevel = UrgencyLevel.MODERATE,
+            evidenceLevel = EvidenceLevel.HIGH,
+            riskAssessment = RiskLevel.MODERATE
         )
     }
 
     suspend fun analyzeWithGemini(query: String): MedicalAnalysisResult {
         return MedicalAnalysisResult(
-            analysis = "Gemini analysis for: $query",
-            confidence = 0.8f,
-            urgencyLevel = UrgencyLevel.LOW,
-            evidenceLevel = EvidenceLevel.MEDIUM,
-            riskLevel = RiskLevel(level = "Low", description = "Educational content")
+            drugName = "Gemini Analysis",
+            dosageInfo = null,
+            medicalCategory = "AI Analysis",
+            confidence = 0.88f,
+            urgencyLevel = UrgencyLevel.MODERATE,
+            evidenceLevel = EvidenceLevel.HIGH,
+            riskAssessment = RiskLevel.MODERATE
         )
     }
 
-    suspend fun analyzePatientContext(context: PatientContext): PatientProfile {
+    suspend fun generatePatientProfile(context: PatientContext): PatientProfile {
         return PatientProfile(
-            id = "patient_${System.currentTimeMillis()}",
-            demographics = "Standard demographics",
-            medicalHistory = context.symptoms,
-            currentMedications = emptyList(),
-            allergies = emptyList()
+            id = context.patientId,
+            name = "Patient Profile",
+            age = context.age,
+            gender = context.gender,
+            medicalHistory = context.medicalHistory,
+            currentMedications = context.currentMedications,
+            allergies = context.allergies,
+            emergencyContact = null
         )
     }
 
-    suspend fun analyzeDrugInteractions(medications: List<String>): DrugInteractionAnalysis {
+    suspend fun analyzeInteractions(drugs: List<String>): DrugInteractionAnalysis {
         return DrugInteractionAnalysis(
-            interactions = emptyList(),
-            severity = "Low",
-            recommendations = "No significant interactions detected",
-            sources = emptyList()
+            primaryDrug = drugs.firstOrNull() ?: "",
+            interactingDrugs = drugs.drop(1),
+            severityLevel = RiskLevel.LOW,
+            clinicalSignificance = "Minimal interaction risk",
+            managementStrategy = "Standard monitoring recommended"
         )
     }
 
-    suspend fun performMedicalResearch(query: String): MedicalResearchResult {
+    suspend fun researchMedicalTopic(topic: String): MedicalResearchResult {
         return MedicalResearchResult(
-            query = query,
-            results = emptyList(),
-            sources = emptyList(),
-            reliability = 0.8f,
-            lastUpdated = System.currentTimeMillis()
+            searchQuery = topic,
+            results = listOf("Research finding 1", "Research finding 2"),
+            evidenceLevel = EvidenceLevel.HIGH
         )
     }
 
-    suspend fun getTurkishMedicalKnowledge(topic: String): TurkishMedicalKnowledge {
-        return TurkishMedicalKnowledge(
-            topic = topic,
-            content = "Turkish medical knowledge for: $topic",
-            sources = emptyList(),
-            lastVerified = System.currentTimeMillis(),
-            certificationLevel = "Standard"
-        )
+    fun getTurkishMedicalKnowledge(drugName: String): Flow<TurkishMedicalKnowledge> = flow {
+        emit(TurkishMedicalKnowledge(
+            drugNameTurkish = drugName,
+            activeIngredient = "Active ingredient",
+            therapeuticClass = "Therapeutic class",
+            dosageInstructions = "Standard dosage",
+            turkishGuidelines = "Turkish medical guidelines",
+            sgkStatus = "SGK covered"
+        ))
     }
 
-    suspend fun getMedicalConsensus(question: String): MedicalConsensus {
+    suspend fun getMedicalConsensus(topic: String): MedicalConsensus {
         return MedicalConsensus(
-            question = question,
-            consensus = "Medical consensus response",
-            agreementLevel = 0.85f,
-            sources = emptyList(),
-            lastUpdated = System.currentTimeMillis()
+            topic = topic,
+            consensus = "Medical consensus on $topic",
+            confidenceLevel = 0.85f,
+            contributingSources = listOf("Source 1", "Source 2")
         )
     }
 
-    suspend fun provideMedicalConsultation(case: ClinicalCase): MedicalConsultation {
+    suspend fun consultOnCase(case: ClinicalCase): MedicalConsultation {
         return MedicalConsultation(
-            caseId = case.id,
-            recommendations = emptyList(),
+            clinicalCase = case,
+            aiRecommendations = listOf("Recommendation 1", "Recommendation 2"),
+            urgencyLevel = UrgencyLevel.MODERATE,
             followUpRequired = false,
-            urgencyLevel = UrgencyLevel.LOW,
-            specialists = emptyList()
+            consultationNotes = "AI consultation notes"
         )
     }
 }

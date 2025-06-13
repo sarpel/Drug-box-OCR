@@ -2,6 +2,8 @@ package com.boxocr.simple.repository
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import com.boxocr.simple.database.VisualFeatureType
+import com.boxocr.simple.data.FeatureData
 import kotlin.math.*
 
 /**
@@ -18,545 +20,489 @@ object AdvancedVisualFeatureExtractor {
     
     // Configuration constants
     private const val SIFT_OCTAVES = 4
-    private const val SIFT_LEVELS = 3
-    private const val COLOR_HISTOGRAM_BINS = 64
-    private const val EDGE_THRESHOLD = 50
-    private const val TEXT_BLOCK_MIN_SIZE = 20
-    
+    private const val SIFT_SCALES_PER_OCTAVE = 3
+    private const val GAUSSIAN_SIGMA = 1.6f
+    private const val CONTRAST_THRESHOLD = 0.04f
+    private const val EDGE_THRESHOLD = 10.0f
+    private const val DESCRIPTOR_SIZE = 128
+    private const val HISTOGRAM_BINS = 64
+    private const val SOBEL_THRESHOLD = 50
+    private const val LBP_RADIUS = 1
+    private const val LBP_POINTS = 8
+
     /**
-     * Extract comprehensive visual features from drug box image
+     * Extract all visual features from a drug box image
+     * Returns a map of feature types to their corresponding feature data
      */
-    fun extractComprehensiveFeatures(bitmap: Bitmap): Map<VisualFeatureType, FeatureData> {
+    fun extractAllFeatures(bitmap: Bitmap): Map<VisualFeatureType, FeatureData> {
         val features = mutableMapOf<VisualFeatureType, FeatureData>()
         
         try {
-            // Extract different types of visual features
             features[VisualFeatureType.SIFT_FEATURES] = extractSIFTFeatures(bitmap)
             features[VisualFeatureType.COLOR_HISTOGRAM] = extractColorHistogram(bitmap)
             features[VisualFeatureType.TEXT_LAYOUT] = extractTextLayoutFeatures(bitmap)
             features[VisualFeatureType.EDGE_FEATURES] = extractEdgeFeatures(bitmap)
             features[VisualFeatureType.SHAPE_FEATURES] = extractShapeFeatures(bitmap)
             features[VisualFeatureType.TEXTURE_FEATURES] = extractTextureFeatures(bitmap)
-            
         } catch (e: Exception) {
-            // Fallback to basic features if advanced extraction fails
-            features[VisualFeatureType.BASIC_FEATURES] = extractBasicFeatures(bitmap)
+            // Log error and continue with available features
+            android.util.Log.w("VisualFeatureExtractor", "Error extracting features", e)
         }
         
         return features
     }
-    
+
     /**
      * Extract SIFT-inspired keypoint features
+     * Returns 128-dimensional descriptor vector
      */
-    private fun extractSIFTFeatures(bitmap: Bitmap): FeatureData {
-        val width = bitmap.width
-        val height = bitmap.height
-        val grayscale = convertToGrayscale(bitmap)
+    fun extractSIFTFeatures(bitmap: Bitmap): FeatureData {
+        val grayImage = convertToGrayscale(bitmap)
+        val keypoints = detectKeypoints(grayImage)
+        val descriptors = computeDescriptors(grayImage, keypoints)
         
-        // Generate scale space
-        val scaleSpace = generateScaleSpace(grayscale, SIFT_OCTAVES, SIFT_LEVELS)
-        
-        // Detect keypoints
-        val keypoints = detectKeypoints(scaleSpace)
-        
-        // Generate descriptors
-        val descriptors = generateDescriptors(grayscale, keypoints)
-        
-        // Convert to feature vector
-        val featureVector = descriptors.joinToString(",") { it.toString() }
+        // Aggregate descriptors into fixed-size feature vector
+        val featureVector = aggregateDescriptors(descriptors)
         
         return FeatureData(
-            data = "keypoints:${keypoints.size}",
-            vector = featureVector,
-            method = "sift_inspired",
-            confidence = calculateKeypointConfidence(keypoints, width * height)
+            data = featureVector,
+            type = "SIFT",
+            confidence = calculateKeypointConfidence(keypoints)
         )
     }
-    
+
     /**
      * Extract color histogram features
+     * Returns 192-dimensional vector (64 bins per RGB channel)
      */
-    private fun extractColorHistogram(bitmap: Bitmap): FeatureData {
-        val histogram = IntArray(COLOR_HISTOGRAM_BINS * 3) // RGB channels
-        val binSize = 256 / COLOR_HISTOGRAM_BINS
-        val totalPixels = bitmap.width * bitmap.height
+    fun extractColorHistogram(bitmap: Bitmap): FeatureData {
+        val rHist = IntArray(HISTOGRAM_BINS)
+        val gHist = IntArray(HISTOGRAM_BINS)
+        val bHist = IntArray(HISTOGRAM_BINS)
         
-        // Process each pixel
-        for (x in 0 until bitmap.width) {
-            for (y in 0 until bitmap.height) {
+        val width = bitmap.width
+        val height = bitmap.height
+        val totalPixels = width * height
+        
+        for (x in 0 until width) {
+            for (y in 0 until height) {
                 val pixel = bitmap.getPixel(x, y)
-                val r = Color.red(pixel) / binSize
-                val g = Color.green(pixel) / binSize
-                val b = Color.blue(pixel) / binSize
+                val r = Color.red(pixel)
+                val g = Color.green(pixel)
+                val b = Color.blue(pixel)
                 
-                // Ensure indices are within bounds
-                val rIndex = minOf(r, COLOR_HISTOGRAM_BINS - 1)
-                val gIndex = minOf(g, COLOR_HISTOGRAM_BINS - 1)
-                val bIndex = minOf(b, COLOR_HISTOGRAM_BINS - 1)
-                
-                histogram[rIndex]++
-                histogram[COLOR_HISTOGRAM_BINS + gIndex]++
-                histogram[COLOR_HISTOGRAM_BINS * 2 + bIndex]++
+                rHist[r * HISTOGRAM_BINS / 256]++
+                gHist[g * HISTOGRAM_BINS / 256]++
+                bHist[b * HISTOGRAM_BINS / 256]++
             }
         }
         
-        // Normalize histogram
-        val normalizedHistogram = histogram.map { it.toFloat() / totalPixels }
-        val featureVector = normalizedHistogram.joinToString(",")
-        
-        // Calculate color distribution confidence
-        val colorVariance = calculateColorVariance(normalizedHistogram)
+        // Normalize histograms
+        val normalizedHist = FloatArray(HISTOGRAM_BINS * 3)
+        for (i in 0 until HISTOGRAM_BINS) {
+            normalizedHist[i] = rHist[i].toFloat() / totalPixels
+            normalizedHist[i + HISTOGRAM_BINS] = gHist[i].toFloat() / totalPixels
+            normalizedHist[i + HISTOGRAM_BINS * 2] = bHist[i].toFloat() / totalPixels
+        }
         
         return FeatureData(
-            data = "color_distribution:$colorVariance",
-            vector = featureVector,
-            method = "color_histogram",
-            confidence = minOf(colorVariance * 2f, 1f)
+            data = normalizedHist.toList(),
+            type = "COLOR_HISTOGRAM",
+            confidence = calculateHistogramConfidence(normalizedHist)
         )
     }
-    
+
     /**
-     * Extract text layout features specific to drug boxes
+     * Extract text layout features
+     * Returns spatial distribution of text regions
      */
-    private fun extractTextLayoutFeatures(bitmap: Bitmap): FeatureData {
-        val grayscale = convertToGrayscale(bitmap)
-        val binaryImage = applyAdaptiveThreshold(grayscale)
-        
-        // Detect text regions using connected components
-        val textRegions = detectTextRegions(binaryImage)
-        
-        // Calculate layout features
-        val layoutFeatures = calculateLayoutFeatures(textRegions, bitmap.width, bitmap.height)
-        
-        val featureVector = listOf(
-            layoutFeatures.topTextRatio,
-            layoutFeatures.centerTextRatio,
-            layoutFeatures.bottomTextRatio,
-            layoutFeatures.leftTextRatio,
-            layoutFeatures.rightTextRatio,
-            layoutFeatures.textDensity,
-            layoutFeatures.averageTextBlockSize,
-            layoutFeatures.textBlockCount.toFloat()
-        ).joinToString(",")
+    fun extractTextLayoutFeatures(bitmap: Bitmap): FeatureData {
+        val textRegions = detectTextRegions(bitmap)
+        val layoutFeatures = computeLayoutStatistics(textRegions, bitmap.width, bitmap.height)
         
         return FeatureData(
-            data = "text_blocks:${layoutFeatures.textBlockCount}",
-            vector = featureVector,
-            method = "text_layout_analysis",
-            confidence = calculateTextLayoutConfidence(layoutFeatures)
+            data = layoutFeatures,
+            type = "TEXT_LAYOUT",
+            confidence = if (textRegions.isNotEmpty()) 0.8f else 0.2f
         )
     }
-    
+
     /**
      * Extract edge features using Sobel operator
+     * Returns edge orientation histogram
      */
-    private fun extractEdgeFeatures(bitmap: Bitmap): FeatureData {
-        val grayscale = convertToGrayscale(bitmap)
-        val edges = applySobelEdgeDetection(grayscale)
-        
-        // Calculate edge statistics
-        val edgeStatistics = calculateEdgeStatistics(edges)
-        
-        // Generate edge histogram
-        val edgeHistogram = generateEdgeHistogram(edges)
-        
-        val featureVector = (edgeStatistics + edgeHistogram).joinToString(",")
+    fun extractEdgeFeatures(bitmap: Bitmap): FeatureData {
+        val grayImage = convertToGrayscale(bitmap)
+        val (gradientX, gradientY) = computeSobelGradients(grayImage)
+        val orientationHist = computeOrientationHistogram(gradientX, gradientY)
         
         return FeatureData(
-            data = "edge_density:${edgeStatistics[0]}",
-            vector = featureVector,
-            method = "sobel_edge_detection",
-            confidence = calculateEdgeConfidence(edgeStatistics)
+            data = orientationHist,
+            type = "EDGE_FEATURES",
+            confidence = calculateEdgeConfidence(gradientX, gradientY)
         )
     }
-    
+
     /**
-     * Extract shape features from drug box contours
+     * Extract shape features from contours
+     * Returns geometric descriptors
      */
-    private fun extractShapeFeatures(bitmap: Bitmap): FeatureData {
-        val grayscale = convertToGrayscale(bitmap)
-        val edges = applySobelEdgeDetection(grayscale)
-        
-        // Find contours
-        val contours = findContours(edges)
-        
-        // Calculate shape descriptors
-        val shapeFeatures = calculateShapeDescriptors(contours)
-        
-        val featureVector = shapeFeatures.joinToString(",")
+    fun extractShapeFeatures(bitmap: Bitmap): FeatureData {
+        val contours = detectContours(bitmap)
+        val shapeDescriptors = computeShapeDescriptors(contours)
         
         return FeatureData(
-            data = "contours:${contours.size}",
-            vector = featureVector,
-            method = "shape_analysis",
-            confidence = calculateShapeConfidence(contours, bitmap.width * bitmap.height)
+            data = shapeDescriptors,
+            type = "SHAPE_FEATURES",
+            confidence = if (contours.isNotEmpty()) 0.7f else 0.1f
         )
     }
-    
+
     /**
-     * Extract texture features using Local Binary Patterns (LBP)
+     * Extract texture features using Local Binary Patterns
+     * Returns LBP histogram
      */
-    private fun extractTextureFeatures(bitmap: Bitmap): FeatureData {
-        val grayscale = convertToGrayscale(bitmap)
-        val lbpHistogram = calculateLBPHistogram(grayscale)
-        
-        val featureVector = lbpHistogram.joinToString(",")
+    fun extractTextureFeatures(bitmap: Bitmap): FeatureData {
+        val grayImage = convertToGrayscale(bitmap)
+        val lbpHistogram = computeLBPHistogram(grayImage)
         
         return FeatureData(
-            data = "texture_patterns:${lbpHistogram.size}",
-            vector = featureVector,
-            method = "local_binary_patterns",
+            data = lbpHistogram,
+            type = "TEXTURE_FEATURES",
             confidence = calculateTextureConfidence(lbpHistogram)
         )
     }
-    
-    /**
-     * Extract basic features as fallback
-     */
-    private fun extractBasicFeatures(bitmap: Bitmap): FeatureData {
-        // Basic statistical features
-        val avgBrightness = calculateAverageBrightness(bitmap)
-        val contrast = calculateContrast(bitmap)
-        val aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
-        
-        val featureVector = listOf(avgBrightness, contrast, aspectRatio).joinToString(",")
-        
-        return FeatureData(
-            data = "basic_stats",
-            vector = featureVector,
-            method = "basic_statistics",
-            confidence = 0.5f
-        )
-    }
-    
-    // Helper functions for image processing
-    
-    private fun convertToGrayscale(bitmap: Bitmap): Array<IntArray> {
+
+    // ============== PRIVATE HELPER METHODS ==============
+
+    private fun convertToGrayscale(bitmap: Bitmap): Array<FloatArray> {
         val width = bitmap.width
         val height = bitmap.height
-        val grayscale = Array(height) { IntArray(width) }
+        val grayImage = Array(height) { FloatArray(width) }
         
-        for (y in 0 until height) {
-            for (x in 0 until width) {
+        for (x in 0 until width) {
+            for (y in 0 until height) {
                 val pixel = bitmap.getPixel(x, y)
-                val gray = (Color.red(pixel) * 0.299 + Color.green(pixel) * 0.587 + Color.blue(pixel) * 0.114).toInt()
-                grayscale[y][x] = gray
+                val gray = (Color.red(pixel) * 0.299 + Color.green(pixel) * 0.587 + Color.blue(pixel) * 0.114).toFloat()
+                grayImage[y][x] = gray / 255.0f
             }
         }
         
-        return grayscale
+        return grayImage
     }
-    
-    private fun generateScaleSpace(grayscale: Array<IntArray>, octaves: Int, levels: Int): Array<Array<Array<IntArray>>> {
-        val height = grayscale.size
-        val width = grayscale[0].size
-        val scaleSpace = Array(octaves) { Array(levels) { Array(height) { IntArray(width) } } }
-        
-        // Initialize first octave
-        scaleSpace[0][0] = grayscale
-        
-        // Generate scale space (simplified)
-        for (octave in 0 until octaves) {
-            for (level in 0 until levels) {
-                if (octave == 0 && level == 0) continue
-                
-                val sourceHeight = if (octave > 0) height / (1 shl octave) else height
-                val sourceWidth = if (octave > 0) width / (1 shl octave) else width
-                
-                scaleSpace[octave][level] = Array(sourceHeight) { IntArray(sourceWidth) }
-                
-                // Apply Gaussian blur (simplified)
-                for (y in 1 until sourceHeight - 1) {
-                    for (x in 1 until sourceWidth - 1) {
-                        var sum = 0
-                        for (dy in -1..1) {
-                            for (dx in -1..1) {
-                                sum += if (octave == 0) grayscale[y + dy][x + dx] else scaleSpace[octave - 1][levels - 1][y + dy][x + dx]
-                            }
-                        }
-                        scaleSpace[octave][level][y][x] = sum / 9
-                    }
-                }
-            }
-        }
-        
-        return scaleSpace
-    }
-    
-    private fun detectKeypoints(scaleSpace: Array<Array<Array<IntArray>>>): List<Keypoint> {
+
+    private fun detectKeypoints(grayImage: Array<FloatArray>): List<Keypoint> {
         val keypoints = mutableListOf<Keypoint>()
+        val height = grayImage.size
+        val width = grayImage[0].size
         
-        // Simplified keypoint detection
-        for (octave in 0 until scaleSpace.size) {
-            for (level in 1 until scaleSpace[octave].size - 1) {
-                val current = scaleSpace[octave][level]
-                val above = scaleSpace[octave][level + 1]
-                val below = scaleSpace[octave][level - 1]
-                
-                for (y in 1 until current.size - 1) {
-                    for (x in 1 until current[0].size - 1) {
-                        val value = current[y][x]
-                        
-                        // Check if it's a local extremum
-                        var isExtremum = true
-                        for (dy in -1..1) {
-                            for (dx in -1..1) {
-                                if (current[y + dy][x + dx] > value || 
-                                    above[y + dy][x + dx] > value || 
-                                    below[y + dy][x + dx] > value) {
-                                    isExtremum = false
-                                    break
-                                }
-                            }
-                            if (!isExtremum) break
-                        }
-                        
-                        if (isExtremum && value > EDGE_THRESHOLD) {
-                            keypoints.add(Keypoint(x, y, octave, level, value.toFloat()))
-                        }
-                    }
+        // Simplified corner detection (Harris-like)
+        for (y in 2 until height - 2) {
+            for (x in 2 until width - 2) {
+                val response = computeCornerResponse(grayImage, x, y)
+                if (response > CONTRAST_THRESHOLD) {
+                    keypoints.add(Keypoint(x.toFloat(), y.toFloat(), response))
                 }
             }
         }
         
-        return keypoints
+        return keypoints.sortedByDescending { it.response }.take(100) // Keep top 100 keypoints
     }
-    
-    private fun generateDescriptors(grayscale: Array<IntArray>, keypoints: List<Keypoint>): List<Float> {
-        val descriptors = mutableListOf<Float>()
+
+    private fun computeCornerResponse(image: Array<FloatArray>, x: Int, y: Int): Float {
+        var Ixx = 0.0f
+        var Ixy = 0.0f
+        var Iyy = 0.0f
+        
+        for (dy in -1..1) {
+            for (dx in -1..1) {
+                val ix = (image[y][x + 1] - image[y][x - 1]) / 2.0f
+                val iy = (image[y + 1][x] - image[y - 1][x]) / 2.0f
+                
+                Ixx += ix * ix
+                Ixy += ix * iy
+                Iyy += iy * iy
+            }
+        }
+        
+        val det = Ixx * Iyy - Ixy * Ixy
+        val trace = Ixx + Iyy
+        
+        return det - 0.04f * trace * trace
+    }
+
+    private fun computeDescriptors(image: Array<FloatArray>, keypoints: List<Keypoint>): List<FloatArray> {
+        val descriptors = mutableListOf<FloatArray>()
         
         for (keypoint in keypoints) {
-            // Generate 16-dimensional descriptor for each keypoint
-            val descriptor = generateKeypointDescriptor(grayscale, keypoint)
-            descriptors.addAll(descriptor)
+            val descriptor = computeKeypointDescriptor(image, keypoint)
+            if (descriptor != null) {
+                descriptors.add(descriptor)
+            }
         }
         
         return descriptors
     }
-    
-    private fun generateKeypointDescriptor(grayscale: Array<IntArray>, keypoint: Keypoint): List<Float> {
-        val descriptor = mutableListOf<Float>()
-        val radius = 8
+
+    private fun computeKeypointDescriptor(image: Array<FloatArray>, keypoint: Keypoint): FloatArray? {
+        val x = keypoint.x.toInt()
+        val y = keypoint.y.toInt()
+        val patchSize = 16
+        val halfPatch = patchSize / 2
         
-        // Extract 4x4 region around keypoint
-        for (dy in -radius until radius step 4) {
-            for (dx in -radius until radius step 4) {
-                var regionSum = 0f
-                var count = 0
-                
-                for (y in dy until dy + 4) {
-                    for (x in dx until dx + 4) {
-                        val py = keypoint.y + y
-                        val px = keypoint.x + x
-                        
-                        if (py >= 0 && py < grayscale.size && px >= 0 && px < grayscale[0].size) {
-                            regionSum += grayscale[py][px]
-                            count++
-                        }
-                    }
+        if (x < halfPatch || y < halfPatch || 
+            x >= image[0].size - halfPatch || y >= image.size - halfPatch) {
+            return null
+        }
+        
+        val descriptor = FloatArray(DESCRIPTOR_SIZE)
+        var index = 0
+        
+        // Simplified 128-dimensional descriptor
+        for (dy in -halfPatch until halfPatch step 2) {
+            for (dx in -halfPatch until halfPatch step 2) {
+                if (index < DESCRIPTOR_SIZE) {
+                    val intensity = image[y + dy][x + dx]
+                    descriptor[index++] = intensity
                 }
-                
-                descriptor.add(if (count > 0) regionSum / count else 0f)
+            }
+        }
+        
+        // Normalize descriptor
+        val norm = sqrt(descriptor.sumOf { it * it }.toFloat())
+        if (norm > 0) {
+            for (i in descriptor.indices) {
+                descriptor[i] /= norm
             }
         }
         
         return descriptor
     }
-    
-    private fun applyAdaptiveThreshold(grayscale: Array<IntArray>): Array<BooleanArray> {
-        val height = grayscale.size
-        val width = grayscale[0].size
-        val binary = Array(height) { BooleanArray(width) }
-        
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                val threshold = calculateLocalThreshold(grayscale, x, y, 15)
-                binary[y][x] = grayscale[y][x] > threshold
-            }
+
+    private fun aggregateDescriptors(descriptors: List<FloatArray>): List<Float> {
+        if (descriptors.isEmpty()) {
+            return List(DESCRIPTOR_SIZE) { 0.0f }
         }
         
-        return binary
-    }
-    
-    private fun calculateLocalThreshold(grayscale: Array<IntArray>, x: Int, y: Int, windowSize: Int): Int {
-        var sum = 0
-        var count = 0
-        val halfWindow = windowSize / 2
+        val aggregated = FloatArray(DESCRIPTOR_SIZE)
         
-        for (dy in -halfWindow..halfWindow) {
-            for (dx in -halfWindow..halfWindow) {
-                val ny = y + dy
-                val nx = x + dx
-                
-                if (ny >= 0 && ny < grayscale.size && nx >= 0 && nx < grayscale[0].size) {
-                    sum += grayscale[ny][nx]
-                    count++
+        // Average pooling
+        for (descriptor in descriptors) {
+            for (i in descriptor.indices) {
+                if (i < aggregated.size) {
+                    aggregated[i] += descriptor[i]
                 }
             }
         }
         
-        return if (count > 0) sum / count else 128
+        val count = descriptors.size.toFloat()
+        return aggregated.map { it / count }
     }
-    
-    private fun detectTextRegions(binaryImage: Array<BooleanArray>): List<TextRegion> {
-        val regions = mutableListOf<TextRegion>()
-        val visited = Array(binaryImage.size) { BooleanArray(binaryImage[0].size) }
+
+    private fun calculateKeypointConfidence(keypoints: List<Keypoint>): Float {
+        if (keypoints.isEmpty()) return 0.0f
         
-        for (y in binaryImage.indices) {
-            for (x in binaryImage[0].indices) {
-                if (binaryImage[y][x] && !visited[y][x]) {
-                    val region = floodFillTextRegion(binaryImage, visited, x, y)
-                    if (region.width >= TEXT_BLOCK_MIN_SIZE && region.height >= TEXT_BLOCK_MIN_SIZE) {
-                        regions.add(region)
-                    }
+        val avgResponse = keypoints.map { it.response }.average().toFloat()
+        return minOf(1.0f, avgResponse * 10.0f) // Scale to 0-1
+    }
+
+    private fun calculateHistogramConfidence(histogram: FloatArray): Float {
+        // Calculate entropy as confidence measure
+        var entropy = 0.0f
+        for (bin in histogram) {
+            if (bin > 0) {
+                entropy -= bin * ln(bin)
+            }
+        }
+        return minOf(1.0f, entropy / 5.0f) // Normalize to 0-1
+    }
+
+    private fun detectTextRegions(bitmap: Bitmap): List<TextRegion> {
+        // Simplified text region detection
+        val regions = mutableListOf<TextRegion>()
+        val width = bitmap.width
+        val height = bitmap.height
+        
+        // Grid-based text detection
+        val gridSize = 32
+        for (y in 0 until height step gridSize) {
+            for (x in 0 until width step gridSize) {
+                val endX = minOf(x + gridSize, width)
+                val endY = minOf(y + gridSize, height)
+                
+                if (isTextRegion(bitmap, x, y, endX, endY)) {
+                    regions.add(TextRegion(x, y, endX - x, endY - y))
                 }
             }
         }
         
         return regions
     }
-    
-    private fun floodFillTextRegion(binaryImage: Array<BooleanArray>, visited: Array<BooleanArray>, startX: Int, startY: Int): TextRegion {
-        val stack = mutableListOf<Pair<Int, Int>>()
-        stack.add(Pair(startX, startY))
+
+    private fun isTextRegion(bitmap: Bitmap, startX: Int, startY: Int, endX: Int, endY: Int): Boolean {
+        var edgeCount = 0
+        var totalPixels = 0
         
-        var minX = startX
-        var maxX = startX
-        var minY = startY
-        var maxY = startY
-        var pixelCount = 0
-        
-        while (stack.isNotEmpty()) {
-            val (x, y) = stack.removeAt(stack.size - 1)
-            
-            if (x < 0 || x >= binaryImage[0].size || y < 0 || y >= binaryImage.size || 
-                visited[y][x] || !binaryImage[y][x]) {
-                continue
+        for (y in startY until endY) {
+            for (x in startX until endX) {
+                if (x > 0 && x < bitmap.width - 1 && y > 0 && y < bitmap.height - 1) {
+                    val current = getGrayValue(bitmap.getPixel(x, y))
+                    val right = getGrayValue(bitmap.getPixel(x + 1, y))
+                    val bottom = getGrayValue(bitmap.getPixel(x, y + 1))
+                    
+                    val edgeStrength = abs(current - right) + abs(current - bottom)
+                    if (edgeStrength > 30) edgeCount++
+                    totalPixels++
+                }
             }
-            
-            visited[y][x] = true
-            pixelCount++
-            
-            minX = minOf(minX, x)
-            maxX = maxOf(maxX, x)
-            minY = minOf(minY, y)
-            maxY = maxOf(maxY, y)
-            
-            stack.add(Pair(x + 1, y))
-            stack.add(Pair(x - 1, y))
-            stack.add(Pair(x, y + 1))
-            stack.add(Pair(x, y - 1))
         }
         
-        return TextRegion(minX, minY, maxX - minX + 1, maxY - minY + 1, pixelCount)
+        return totalPixels > 0 && (edgeCount.toFloat() / totalPixels) > 0.15f
     }
-    
-    private fun calculateLayoutFeatures(textRegions: List<TextRegion>, imageWidth: Int, imageHeight: Int): LayoutFeatures {
-        val totalArea = imageWidth * imageHeight
-        val totalTextArea = textRegions.sumOf { it.area }
+
+    private fun getGrayValue(pixel: Int): Int {
+        return (Color.red(pixel) * 0.299 + Color.green(pixel) * 0.587 + Color.blue(pixel) * 0.114).toInt()
+    }
+
+    private fun computeLayoutStatistics(regions: List<TextRegion>, width: Int, height: Int): List<Float> {
+        if (regions.isEmpty()) {
+            return List(8) { 0.0f }
+        }
         
-        // Calculate region distributions
-        val topRegions = textRegions.filter { it.y < imageHeight / 3 }
-        val centerRegions = textRegions.filter { it.y >= imageHeight / 3 && it.y < 2 * imageHeight / 3 }
-        val bottomRegions = textRegions.filter { it.y >= 2 * imageHeight / 3 }
-        val leftRegions = textRegions.filter { it.x < imageWidth / 3 }
-        val rightRegions = textRegions.filter { it.x >= 2 * imageWidth / 3 }
+        // Compute spatial distribution statistics
+        val xPositions = regions.map { it.x.toFloat() / width }
+        val yPositions = regions.map { it.y.toFloat() / height }
+        val widths = regions.map { it.width.toFloat() / width }
+        val heights = regions.map { it.height.toFloat() / height }
         
-        val avgBlockSize = if (textRegions.isNotEmpty()) textRegions.map { it.area }.average().toFloat() else 0f
-        
-        return LayoutFeatures(
-            topTextRatio = topRegions.sumOf { it.area }.toFloat() / totalArea,
-            centerTextRatio = centerRegions.sumOf { it.area }.toFloat() / totalArea,
-            bottomTextRatio = bottomRegions.sumOf { it.area }.toFloat() / totalArea,
-            leftTextRatio = leftRegions.sumOf { it.area }.toFloat() / totalArea,
-            rightTextRatio = rightRegions.sumOf { it.area }.toFloat() / totalArea,
-            textDensity = totalTextArea.toFloat() / totalArea,
-            averageTextBlockSize = avgBlockSize,
-            textBlockCount = textRegions.size
+        return listOf(
+            xPositions.average().toFloat(),
+            yPositions.average().toFloat(),
+            widths.average().toFloat(),
+            heights.average().toFloat(),
+            xPositions.maxOrNull() ?: 0f,
+            yPositions.maxOrNull() ?: 0f,
+            xPositions.minOrNull() ?: 0f,
+            yPositions.minOrNull() ?: 0f
         )
     }
-    
-    private fun applySobelEdgeDetection(grayscale: Array<IntArray>): Array<IntArray> {
-        val height = grayscale.size
-        val width = grayscale[0].size
-        val edges = Array(height) { IntArray(width) }
+
+    private fun computeSobelGradients(image: Array<FloatArray>): Pair<Array<FloatArray>, Array<FloatArray>> {
+        val height = image.size
+        val width = image[0].size
+        val gradientX = Array(height) { FloatArray(width) }
+        val gradientY = Array(height) { FloatArray(width) }
         
+        // Sobel kernels
         val sobelX = arrayOf(
-            intArrayOf(-1, 0, 1),
-            intArrayOf(-2, 0, 2),
-            intArrayOf(-1, 0, 1)
+            floatArrayOf(-1f, 0f, 1f),
+            floatArrayOf(-2f, 0f, 2f),
+            floatArrayOf(-1f, 0f, 1f)
         )
-        
         val sobelY = arrayOf(
-            intArrayOf(-1, -2, -1),
-            intArrayOf(0, 0, 0),
-            intArrayOf(1, 2, 1)
+            floatArrayOf(-1f, -2f, -1f),
+            floatArrayOf(0f, 0f, 0f),
+            floatArrayOf(1f, 2f, 1f)
         )
         
         for (y in 1 until height - 1) {
             for (x in 1 until width - 1) {
-                var gx = 0
-                var gy = 0
+                var gx = 0f
+                var gy = 0f
                 
-                for (dy in -1..1) {
-                    for (dx in -1..1) {
-                        val pixel = grayscale[y + dy][x + dx]
-                        gx += pixel * sobelX[dy + 1][dx + 1]
-                        gy += pixel * sobelY[dy + 1][dx + 1]
+                for (ky in -1..1) {
+                    for (kx in -1..1) {
+                        val pixel = image[y + ky][x + kx]
+                        gx += pixel * sobelX[ky + 1][kx + 1]
+                        gy += pixel * sobelY[ky + 1][kx + 1]
                     }
                 }
                 
-                val magnitude = sqrt((gx * gx + gy * gy).toDouble()).toInt()
-                edges[y][x] = minOf(magnitude, 255)
+                gradientX[y][x] = gx
+                gradientY[y][x] = gy
             }
         }
         
-        return edges
+        return Pair(gradientX, gradientY)
     }
-    
-    private fun calculateEdgeStatistics(edges: Array<IntArray>): List<Float> {
-        val flatEdges = edges.flatten()
-        val totalPixels = flatEdges.size
-        val edgePixels = flatEdges.count { it > EDGE_THRESHOLD }
+
+    private fun computeOrientationHistogram(gradientX: Array<FloatArray>, gradientY: Array<FloatArray>): List<Float> {
+        val bins = 8
+        val histogram = FloatArray(bins)
+        val height = gradientX.size
+        val width = gradientX[0].size
         
-        val edgeDensity = edgePixels.toFloat() / totalPixels
-        val averageEdgeMagnitude = flatEdges.filter { it > EDGE_THRESHOLD }.average().toFloat()
-        val maxEdgeMagnitude = flatEdges.maxOrNull()?.toFloat() ?: 0f
-        
-        return listOf(edgeDensity, averageEdgeMagnitude, maxEdgeMagnitude)
-    }
-    
-    private fun generateEdgeHistogram(edges: Array<IntArray>): List<Float> {
-        val histogram = IntArray(8) // 8 orientation bins
-        val totalEdges = edges.sumOf { row -> row.count { it > EDGE_THRESHOLD } }
-        
-        // Simplified edge orientation histogram
-        for (y in 1 until edges.size - 1) {
-            for (x in 1 until edges[0].size - 1) {
-                if (edges[y][x] > EDGE_THRESHOLD) {
-                    val gx = edges[y][x + 1] - edges[y][x - 1]
-                    val gy = edges[y + 1][x] - edges[y - 1][x]
-                    val angle = atan2(gy.toDouble(), gx.toDouble())
-                    val bin = ((angle + PI) / (2 * PI) * 8).toInt().coerceIn(0, 7)
-                    histogram[bin]++
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val gx = gradientX[y][x]
+                val gy = gradientY[y][x]
+                val magnitude = sqrt(gx * gx + gy * gy)
+                
+                if (magnitude > SOBEL_THRESHOLD) {
+                    val orientation = atan2(gy, gx)
+                    val normalizedOrientation = (orientation + PI) / (2 * PI)
+                    val bin = (normalizedOrientation * bins).toInt().coerceIn(0, bins - 1)
+                    histogram[bin] += magnitude
                 }
             }
         }
         
-        return histogram.map { if (totalEdges > 0) it.toFloat() / totalEdges else 0f }
+        // Normalize histogram
+        val total = histogram.sum()
+        return if (total > 0) {
+            histogram.map { it / total }
+        } else {
+            histogram.toList()
+        }
     }
-    
-    private fun findContours(edges: Array<IntArray>): List<List<Point>> {
-        // Simplified contour detection
-        val contours = mutableListOf<List<Point>>()
-        val visited = Array(edges.size) { BooleanArray(edges[0].size) }
+
+    private fun calculateEdgeConfidence(gradientX: Array<FloatArray>, gradientY: Array<FloatArray>): Float {
+        var strongEdges = 0
+        var totalPixels = 0
         
-        for (y in edges.indices) {
-            for (x in edges[0].indices) {
-                if (edges[y][x] > EDGE_THRESHOLD && !visited[y][x]) {
+        for (y in gradientX.indices) {
+            for (x in gradientX[0].indices) {
+                val magnitude = sqrt(gradientX[y][x] * gradientX[y][x] + gradientY[y][x] * gradientY[y][x])
+                if (magnitude > SOBEL_THRESHOLD) strongEdges++
+                totalPixels++
+            }
+        }
+        
+        return if (totalPixels > 0) {
+            (strongEdges.toFloat() / totalPixels).coerceIn(0f, 1f)
+        } else 0f
+    }
+
+    private fun detectContours(bitmap: Bitmap): List<Contour> {
+        // Simplified contour detection
+        val contours = mutableListOf<Contour>()
+        val width = bitmap.width
+        val height = bitmap.height
+        
+        // Edge detection first
+        val edges = Array(height) { BooleanArray(width) }
+        for (y in 1 until height - 1) {
+            for (x in 1 until width - 1) {
+                val current = getGrayValue(bitmap.getPixel(x, y))
+                val neighbors = listOf(
+                    getGrayValue(bitmap.getPixel(x - 1, y)),
+                    getGrayValue(bitmap.getPixel(x + 1, y)),
+                    getGrayValue(bitmap.getPixel(x, y - 1)),
+                    getGrayValue(bitmap.getPixel(x, y + 1))
+                )
+                
+                val maxDiff = neighbors.maxOfOrNull { abs(current - it) } ?: 0
+                edges[y][x] = maxDiff > 30
+            }
+        }
+        
+        // Simple contour following
+        val visited = Array(height) { BooleanArray(width) }
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                if (edges[y][x] && !visited[y][x]) {
                     val contour = traceContour(edges, visited, x, y)
-                    if (contour.size > 10) { // Minimum contour size
+                    if (contour.points.size > 10) { // Minimum contour size
                         contours.add(contour)
                     }
                 }
@@ -565,209 +511,155 @@ object AdvancedVisualFeatureExtractor {
         
         return contours
     }
-    
-    private fun traceContour(edges: Array<IntArray>, visited: Array<BooleanArray>, startX: Int, startY: Int): List<Point> {
-        val contour = mutableListOf<Point>()
-        val stack = mutableListOf<Point>()
-        stack.add(Point(startX, startY))
+
+    private fun traceContour(edges: Array<BooleanArray>, visited: Array<BooleanArray>, startX: Int, startY: Int): Contour {
+        val points = mutableListOf<Point>()
+        val stack = mutableListOf(Point(startX, startY))
         
-        while (stack.isNotEmpty()) {
-            val point = stack.removeAt(stack.size - 1)
-            val x = point.x
-            val y = point.y
-            
-            if (x < 0 || x >= edges[0].size || y < 0 || y >= edges.size || 
-                visited[y][x] || edges[y][x] <= EDGE_THRESHOLD) {
+        while (stack.isNotEmpty() && points.size < 1000) { // Limit contour size
+            val current = stack.removeAt(stack.lastIndex)
+            if (current.x < 0 || current.x >= edges[0].size || 
+                current.y < 0 || current.y >= edges.size ||
+                visited[current.y][current.x] || !edges[current.y][current.x]) {
                 continue
             }
             
-            visited[y][x] = true
-            contour.add(point)
+            visited[current.y][current.x] = true
+            points.add(current)
             
             // Add 8-connected neighbors
             for (dy in -1..1) {
                 for (dx in -1..1) {
                     if (dx != 0 || dy != 0) {
-                        stack.add(Point(x + dx, y + dy))
+                        stack.add(Point(current.x + dx, current.y + dy))
                     }
                 }
             }
         }
         
-        return contour
+        return Contour(points)
     }
-    
-    private fun calculateShapeDescriptors(contours: List<List<Point>>): List<Float> {
+
+    private fun computeShapeDescriptors(contours: List<Contour>): List<Float> {
+        if (contours.isEmpty()) {
+            return List(4) { 0.0f }
+        }
+        
         val descriptors = mutableListOf<Float>()
         
-        for (contour in contours) {
-            if (contour.isEmpty()) continue
-            
-            // Calculate basic shape features
-            val area = contour.size.toFloat()
-            val perimeter = calculatePerimeter(contour)
+        for (contour in contours.take(5)) { // Analyze top 5 contours
+            val area = contour.points.size.toFloat()
+            val perimeter = estimatePerimeter(contour.points)
             val circularity = if (perimeter > 0) 4 * PI.toFloat() * area / (perimeter * perimeter) else 0f
-            
-            val boundingBox = calculateBoundingBox(contour)
-            val aspectRatio = boundingBox.width.toFloat() / boundingBox.height.toFloat()
+            val aspectRatio = computeAspectRatio(contour.points)
             
             descriptors.addAll(listOf(area, perimeter, circularity, aspectRatio))
         }
         
-        return descriptors
-    }
-    
-    private fun calculatePerimeter(contour: List<Point>): Float {
-        var perimeter = 0f
-        for (i in 0 until contour.size - 1) {
-            val dx = contour[i + 1].x - contour[i].x
-            val dy = contour[i + 1].y - contour[i].y
-            perimeter += sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+        // Pad or truncate to fixed size
+        return descriptors.take(20).let { list ->
+            list + List(maxOf(0, 20 - list.size)) { 0.0f }
         }
+    }
+
+    private fun estimatePerimeter(points: List<Point>): Float {
+        if (points.size < 2) return 0f
+        
+        var perimeter = 0f
+        for (i in 0 until points.size - 1) {
+            val dx = points[i + 1].x - points[i].x
+            val dy = points[i + 1].y - points[i].y
+            perimeter += sqrt((dx * dx + dy * dy).toFloat())
+        }
+        
         return perimeter
     }
-    
-    private fun calculateBoundingBox(contour: List<Point>): Rectangle {
-        val minX = contour.minOfOrNull { it.x } ?: 0
-        val maxX = contour.maxOfOrNull { it.x } ?: 0
-        val minY = contour.minOfOrNull { it.y } ?: 0
-        val maxY = contour.maxOfOrNull { it.y } ?: 0
+
+    private fun computeAspectRatio(points: List<Point>): Float {
+        if (points.isEmpty()) return 1f
         
-        return Rectangle(minX, minY, maxX - minX, maxY - minY)
+        val minX = points.minOfOrNull { it.x } ?: 0
+        val maxX = points.maxOfOrNull { it.x } ?: 0
+        val minY = points.minOfOrNull { it.y } ?: 0
+        val maxY = points.maxOfOrNull { it.y } ?: 0
+        
+        val width = maxX - minX + 1
+        val height = maxY - minY + 1
+        
+        return if (height > 0) width.toFloat() / height.toFloat() else 1f
     }
-    
-    private fun calculateLBPHistogram(grayscale: Array<IntArray>): List<Float> {
-        val histogram = IntArray(256) // LBP values 0-255
-        val totalPixels = (grayscale.size - 2) * (grayscale[0].size - 2)
+
+    private fun computeLBPHistogram(image: Array<FloatArray>): List<Float> {
+        val histogram = IntArray(256) // LBP values range from 0-255
+        val height = image.size
+        val width = image[0].size
         
-        for (y in 1 until grayscale.size - 1) {
-            for (x in 1 until grayscale[0].size - 1) {
-                val center = grayscale[y][x]
-                var lbpValue = 0
-                
-                // Calculate LBP value for 8 neighbors
-                val neighbors = listOf(
-                    grayscale[y - 1][x - 1], grayscale[y - 1][x], grayscale[y - 1][x + 1],
-                    grayscale[y][x + 1], grayscale[y + 1][x + 1], grayscale[y + 1][x],
-                    grayscale[y + 1][x - 1], grayscale[y][x - 1]
-                )
-                
-                for (i in neighbors.indices) {
-                    if (neighbors[i] >= center) {
-                        lbpValue = lbpValue or (1 shl i)
-                    }
-                }
-                
+        for (y in LBP_RADIUS until height - LBP_RADIUS) {
+            for (x in LBP_RADIUS until width - LBP_RADIUS) {
+                val lbpValue = computeLBPValue(image, x, y)
                 histogram[lbpValue]++
             }
         }
         
-        return histogram.map { it.toFloat() / totalPixels }
+        // Normalize histogram
+        val total = histogram.sum()
+        return if (total > 0) {
+            histogram.map { it.toFloat() / total }
+        } else {
+            histogram.map { 0f }
+        }
     }
-    
-    // Confidence calculation functions
-    
-    private fun calculateKeypointConfidence(keypoints: List<Keypoint>, imageArea: Int): Float {
-        val keypointDensity = keypoints.size.toFloat() / imageArea * 10000 // Per 10k pixels
-        return minOf(keypointDensity / 10f, 1f) // Normalize to 0-1
-    }
-    
-    private fun calculateColorVariance(histogram: List<Float>): Float {
-        val mean = histogram.average().toFloat()
-        val variance = histogram.map { (it - mean) * (it - mean) }.average().toFloat()
-        return sqrt(variance)
-    }
-    
-    private fun calculateTextLayoutConfidence(layoutFeatures: LayoutFeatures): Float {
-        // Higher confidence for more structured text layouts
-        val structureScore = layoutFeatures.textDensity * 0.5f +
-                           (layoutFeatures.textBlockCount / 10f).coerceAtMost(0.3f) +
-                           layoutFeatures.averageTextBlockSize / 1000f * 0.2f
-        return minOf(structureScore, 1f)
-    }
-    
-    private fun calculateEdgeConfidence(edgeStatistics: List<Float>): Float {
-        // Higher confidence for images with clear edges
-        val edgeDensity = edgeStatistics[0]
-        val edgeStrength = edgeStatistics[1] / 255f
-        return minOf(edgeDensity * 0.7f + edgeStrength * 0.3f, 1f)
-    }
-    
-    private fun calculateShapeConfidence(contours: List<List<Point>>, imageArea: Int): Float {
-        val totalContourPoints = contours.sumOf { it.size }
-        val shapeComplexity = totalContourPoints.toFloat() / imageArea
-        return minOf(shapeComplexity * 1000f, 1f)
-    }
-    
-    private fun calculateTextureConfidence(lbpHistogram: List<Float>): Float {
-        // Higher confidence for more varied texture patterns
-        val entropy = -lbpHistogram.filter { it > 0 }.sumOf { it * ln(it.toDouble()) }.toFloat()
-        return minOf(entropy / 8f, 1f) // Normalize by max entropy
-    }
-    
-    private fun calculateAverageBrightness(bitmap: Bitmap): Float {
-        var sum = 0L
-        val totalPixels = bitmap.width * bitmap.height
+
+    private fun computeLBPValue(image: Array<FloatArray>, x: Int, y: Int): Int {
+        val center = image[y][x]
+        var lbpValue = 0
         
-        for (x in 0 until bitmap.width) {
-            for (y in 0 until bitmap.height) {
-                val pixel = bitmap.getPixel(x, y)
-                val brightness = (Color.red(pixel) + Color.green(pixel) + Color.blue(pixel)) / 3
-                sum += brightness
+        // Sample points around the center
+        val angles = (0 until LBP_POINTS).map { it * 2 * PI / LBP_POINTS }
+        
+        for (i in angles.indices) {
+            val angle = angles[i]
+            val sampleX = x + (LBP_RADIUS * cos(angle)).roundToInt()
+            val sampleY = y + (LBP_RADIUS * sin(angle)).roundToInt()
+            
+            if (sampleX >= 0 && sampleX < image[0].size && sampleY >= 0 && sampleY < image.size) {
+                val sampleValue = image[sampleY][sampleX]
+                if (sampleValue >= center) {
+                    lbpValue = lbpValue or (1 shl i)
+                }
             }
         }
         
-        return sum.toFloat() / totalPixels / 255f
+        return lbpValue
     }
-    
-    private fun calculateContrast(bitmap: Bitmap): Float {
-        val avgBrightness = calculateAverageBrightness(bitmap) * 255f
-        var varianceSum = 0.0
-        val totalPixels = bitmap.width * bitmap.height
-        
-        for (x in 0 until bitmap.width) {
-            for (y in 0 until bitmap.height) {
-                val pixel = bitmap.getPixel(x, y)
-                val brightness = (Color.red(pixel) + Color.green(pixel) + Color.blue(pixel)) / 3
-                val diff = brightness - avgBrightness
-                varianceSum += diff * diff
-            }
-        }
-        
-        val variance = varianceSum / totalPixels
-        return sqrt(variance).toFloat() / 255f
+
+    private fun calculateTextureConfidence(histogram: List<Float>): Float {
+        // Calculate uniformity as confidence measure
+        val uniformity = histogram.sumOf { it * it }.toFloat()
+        return (1.0f - uniformity).coerceIn(0f, 1f)
     }
+
+    // ============== DATA CLASSES ==============
+
+    data class Keypoint(
+        val x: Float,
+        val y: Float,
+        val response: Float
+    )
+
+    data class TextRegion(
+        val x: Int,
+        val y: Int,
+        val width: Int,
+        val height: Int
+    )
+
+    data class Point(
+        val x: Int,
+        val y: Int
+    )
+
+    data class Contour(
+        val points: List<Point>
+    )
 }
-
-// Data classes for advanced visual features
-
-data class Keypoint(
-    val x: Int,
-    val y: Int,
-    val octave: Int,
-    val level: Int,
-    val response: Float
-)
-
-data class TextRegion(
-    val x: Int,
-    val y: Int,
-    val width: Int,
-    val height: Int,
-    val area: Int
-)
-
-data class LayoutFeatures(
-    val topTextRatio: Float,
-    val centerTextRatio: Float,
-    val bottomTextRatio: Float,
-    val leftTextRatio: Float,
-    val rightTextRatio: Float,
-    val textDensity: Float,
-    val averageTextBlockSize: Float,
-    val textBlockCount: Int
-)
-
-data class Point(val x: Int, val y: Int)
-
-data class Rectangle(val x: Int, val y: Int, val width: Int, val height: Int)

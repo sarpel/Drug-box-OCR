@@ -1098,17 +1098,7 @@ fun BatchProcessingPhase.isReadyForProcessing(): Boolean {
            batchSessionId != null
 }
 
-// Missing classes for AI integration
-@Serializable
-data class MedicalAnalysisResult(
-    val analysisId: String,
-    val confidence: Float,
-    val findings: List<String>,
-    val recommendations: List<String>,
-    val severity: String,
-    val processingTimeMs: Long,
-    val metadata: Map<String, String> = emptyMap()
-)
+// ============== MEDICAL ANALYSIS CLASSES ==============
 
 @Serializable
 data class CustomAIConfiguration(
@@ -1511,3 +1501,473 @@ data class AIRecommendation(
 enum class AISeverity {
     INFO, WARNING, URGENT, CRITICAL
 }
+
+
+// ============== MISSING AI MEDICAL ANALYSIS CLASSES ==============
+
+@Serializable
+data class MedicalAnalysisResult(
+    val analysisId: String = UUID.randomUUID().toString(),
+    val drugName: String,
+    val dosageInfo: String?,
+    val medicalCategory: String?,
+    val riskAssessment: RiskLevel,
+    val urgencyLevel: UrgencyLevel,
+    val evidenceLevel: EvidenceLevel,
+    val recommendations: List<String> = emptyList(),
+    val warnings: List<String> = emptyList(),
+    val interactions: List<String> = emptyList(),
+    val timestamp: Long = System.currentTimeMillis(),
+    val confidence: Float,
+    val turkishMedicalInfo: String? = null
+)
+
+@Serializable
+enum class UrgencyLevel {
+    LOW,
+    MEDIUM,
+    HIGH,
+    CRITICAL
+}
+
+@Serializable
+enum class EvidenceLevel {
+    LOW,
+    MODERATE,
+    HIGH,
+    VERY_HIGH
+}
+
+@Serializable
+enum class RiskLevel {
+    MINIMAL,
+    LOW,
+    MODERATE,
+    HIGH,
+    SEVERE
+}
+
+// ============== PATIENT CONTEXT AND PROFILE ==============
+
+@Serializable
+data class PatientContext(
+    val patientId: String,
+    val age: Int?,
+    val gender: String?,
+    val medicalHistory: List<String> = emptyList(),
+    val currentMedications: List<String> = emptyList(),
+    val allergies: List<String> = emptyList(),
+    val symptoms: List<String> = emptyList(),
+    val vitals: Map<String, String> = emptyMap(),
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+@Serializable
+data class PatientProfile(
+    val id: String,
+    val name: String,
+    val age: Int?,
+    val gender: String?,
+    val medicalHistory: List<String> = emptyList(),
+    val currentMedications: List<String> = emptyList(),
+    val allergies: List<String> = emptyList(),
+    val emergencyContact: String?,
+    val lastVisit: Long? = null
+)
+
+// ============== DRUG INTERACTION ANALYSIS ==============
+
+@Serializable
+data class DrugInteractionAnalysis(
+    val analysisId: String = UUID.randomUUID().toString(),
+    val primaryDrug: String,
+    val interactingDrugs: List<String> = emptyList(),
+    val severityLevel: RiskLevel,
+    val interactionTypes: List<String> = emptyList(),
+    val clinicalSignificance: String?,
+    val managementStrategy: String?,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+// ============== MEDICAL RESEARCH RESULT ==============
+
+@Serializable
+data class MedicalResearchResult(
+    val queryId: String = UUID.randomUUID().toString(),
+    val searchQuery: String,
+    val results: List<String> = emptyList(),
+    val relevantStudies: List<String> = emptyList(),
+    val evidenceLevel: EvidenceLevel,
+    val lastUpdated: Long = System.currentTimeMillis()
+)
+
+// ============== TURKISH MEDICAL KNOWLEDGE ==============
+
+@Serializable
+data class TurkishMedicalKnowledge(
+    val knowledgeId: String = UUID.randomUUID().toString(),
+    val drugNameTurkish: String,
+    val activeIngredient: String,
+    val therapeuticClass: String,
+    val dosageInstructions: String,
+    val contraindications: List<String> = emptyList(),
+    val sideEffects: List<String> = emptyList(),
+    val turkishGuidelines: String?,
+    val sgkStatus: String?,
+    val lastValidated: Long = System.currentTimeMillis()
+)
+
+// ============== MEDICAL CONSENSUS ==============
+
+@Serializable
+data class MedicalConsensus(
+    val consensusId: String = UUID.randomUUID().toString(),
+    val topic: String,
+    val consensus: String,
+    val confidenceLevel: Float,
+    val contributingSources: List<String> = emptyList(),
+    val guidelines: List<String> = emptyList(),
+    val lastReviewed: Long = System.currentTimeMillis()
+)
+
+// ============== CLINICAL CASE AND CONSULTATION ==============
+
+@Serializable
+data class ClinicalCase(
+    val id: String = UUID.randomUUID().toString(),
+    val patientContext: PatientContext,
+    val presentingSymptoms: List<String> = emptyList(),
+    val clinicalFindings: List<String> = emptyList(),
+    val workingDiagnosis: String?,
+    val treatmentPlan: List<String> = emptyList(),
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+@Serializable
+data class MedicalConsultation(
+    val id: String = UUID.randomUUID().toString(),
+    val clinicalCase: ClinicalCase,
+    val aiRecommendations: List<String> = emptyList(),
+    val urgencyLevel: UrgencyLevel,
+    val followUpRequired: Boolean = false,
+    val consultationNotes: String?,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+// ============== CUSTOM AI CONFIGURATION ==============
+
+@Serializable
+data class CustomAIConfiguration(
+    val id: String = UUID.randomUUID().toString(),
+    val name: String,
+    val description: String,
+    val providerType: AIProviderType,
+    val endpoint: String,
+    val apiKey: String,
+    val customHeaders: Map<String, String> = emptyMap(),
+    val requestFormat: RequestFormat,
+    val responseFormat: ResponseFormat,
+    val modelParameters: Map<String, String> = emptyMap(),
+    val turkishMedicalOptimized: Boolean = false,
+    val maxTokens: Int = 4000,
+    val timeout: Long = 30000,
+    val isActive: Boolean = false,
+    val lastTested: Long? = null
+)
+
+@Serializable
+enum class AIProviderType {
+    OPENAI,
+    CLAUDE,
+    GEMINI,
+    GROK,
+    DEEPSEEK,
+    LOCAL_MODEL,
+    CUSTOM_API
+}
+
+@Serializable
+enum class RequestFormat {
+    OPENAI_CHAT,
+    CLAUDE_MESSAGES,
+    GEMINI_CONTENT,
+    CUSTOM_JSON
+}
+
+@Serializable
+enum class ResponseFormat {
+    OPENAI_RESPONSE,
+    CLAUDE_RESPONSE,
+    GEMINI_RESPONSE,
+    CUSTOM_JSON
+}
+
+// ============== LOCAL AI MODEL ==============
+
+@Serializable
+data class LocalAIModel(
+    val id: String = UUID.randomUUID().toString(),
+    val name: String,
+    val description: String,
+    val modelType: LocalModelType,
+    val version: String,
+    val fileSize: Long,
+    val turkishMedicalSpecialized: Boolean = false,
+    val downloadUrl: String? = null,
+    val checksum: String? = null,
+    val isLoaded: Boolean = false,
+    val inputShape: List<Int> = emptyList(),
+    val outputShape: List<Int> = emptyList(),
+    val preprocessingConfig: Map<String, String> = emptyMap(),
+    val postprocessingConfig: Map<String, String> = emptyMap(),
+    val performanceMetrics: LocalModelPerformance? = null
+)
+
+@Serializable
+data class LocalModelPerformance(
+    val inferenceTimeMs: Long,
+    val memoryUsageMB: Double,
+    val accuracy: Double,
+    val throughput: Double
+)
+
+@Serializable
+enum class LocalModelType {
+    TENSORFLOW_LITE,
+    ONNX,
+    PYTORCH_MOBILE,
+    CUSTOM
+}
+
+// ============== AI PROVIDER STATUS ==============
+
+@Serializable
+data class AIProviderStatus(
+    val providerId: String,
+    val isOnline: Boolean,
+    val responseTime: Long,
+    val lastChecked: Long = System.currentTimeMillis(),
+    val errorMessage: String? = null
+)
+
+// ============== MODEL INFERENCE RESULT ==============
+
+@Serializable
+data class ModelInferenceResult(
+    val resultId: String = UUID.randomUUID().toString(),
+    val modelName: String,
+    val content: String,
+    val confidence: Float,
+    val executionTime: Long,
+    val inferenceType: ModelInferenceType,
+    val metadata: Map<String, String> = emptyMap(),
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+@Serializable
+enum class ModelInferenceType {
+    TEXT_ANALYSIS,
+    IMAGE_RECOGNITION,
+    MEDICAL_DIAGNOSIS,
+    DRUG_IDENTIFICATION,
+    PRESCRIPTION_ANALYSIS
+}
+
+// ============== CUSTOM AI RESPONSE ==============
+
+@Serializable
+data class CustomAIResponse(
+    val responseId: String = UUID.randomUUID().toString(),
+    val content: String,
+    val confidence: Float,
+    val processingTime: Long,
+    val modelUsed: String,
+    val metadata: Map<String, String> = emptyMap(),
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+// ============== LOCAL INFERENCE RESULT ==============
+
+@Serializable
+data class LocalInferenceResult(
+    val resultId: String = UUID.randomUUID().toString(),
+    val modelName: String,
+    val outputData: String,
+    val confidence: Float,
+    val executionTime: Long,
+    val inferenceType: ModelInferenceType,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+// ============== AI CONSENSUS RESULT ==============
+
+@Serializable
+data class AIConsensusResult(
+    val consensusId: String = UUID.randomUUID().toString(),
+    val query: String,
+    val consensusResponse: String,
+    val averageConfidence: Float,
+    val participatingModels: List<String> = emptyList(),
+    val totalExecutionTime: Long,
+    val inferenceType: ModelInferenceType,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+// ============== MODEL RESULT ==============
+
+@Serializable
+data class ModelResult(
+    val modelName: String,
+    val response: String,
+    val confidence: Float,
+    val executionTime: Long,
+    val inferenceType: ModelInferenceType
+)
+
+// ============== TURKISH MEDICAL MODEL INFO ==============
+
+@Serializable
+data class TurkishMedicalModelInfo(
+    val modelId: String,
+    val name: String,
+    val specialization: String,
+    val accuracy: Float,
+    val supportedLanguages: List<String> = listOf("tr", "en"),
+    val lastUpdated: Long = System.currentTimeMillis()
+)
+
+// ============== PRIVATE CLOUD AI CONFIG ==============
+
+@Serializable
+data class PrivateCloudAIConfig(
+    val configId: String = UUID.randomUUID().toString(),
+    val providerName: String,
+    val cloudProvider: String,
+    val endpoint: String,
+    val apiKey: String,
+    val authHeaders: Map<String, String> = emptyMap(),
+    val requestFormat: RequestFormat,
+    val responseFormat: ResponseFormat,
+    val modelParameters: Map<String, String> = emptyMap(),
+    val turkishMedicalOptimized: Boolean = false,
+    val maxTokens: Int = 4000,
+    val timeout: Long = 30000
+)
+
+// ============== CUSTOM AI PROVIDER CONFIG ==============
+
+@Serializable
+data class CustomAIProviderConfig(
+    val providerId: String = UUID.randomUUID().toString(),
+    val name: String,
+    val endpoint: String,
+    val apiKey: String,
+    val headers: Map<String, String> = emptyMap(),
+    val requestFormat: RequestFormat,
+    val responseFormat: ResponseFormat,
+    val modelParameters: Map<String, String> = emptyMap(),
+    val timeout: Long = 30000
+)
+
+// ============== LOCAL AI MODEL CONFIG ==============
+
+@Serializable
+data class LocalAIModelConfig(
+    val configId: String = UUID.randomUUID().toString(),
+    val name: String,
+    val description: String,
+    val modelType: LocalModelType,
+    val version: String,
+    val inputShape: List<Int> = emptyList(),
+    val outputShape: List<Int> = emptyList(),
+    val preprocessingConfig: Map<String, String> = emptyMap(),
+    val postprocessingConfig: Map<String, String> = emptyMap()
+)
+
+// ============== AI INTEGRATION STATUS ==============
+
+@Serializable
+data class AIIntegrationStatus(
+    val statusId: String = UUID.randomUUID().toString(),
+    val activeCustomProviders: Int = 0,
+    val totalCustomProviders: Int = 0,
+    val loadedLocalModels: Int = 0,
+    val totalLocalModels: Int = 0,
+    val totalInferencesToday: Int = 0,
+    val systemHealth: SystemHealth = SystemHealth.UNKNOWN,
+    val lastUpdated: Long = System.currentTimeMillis()
+)
+
+@Serializable
+enum class SystemHealth {
+    EXCELLENT,
+    GOOD,
+    FAIR,
+    POOR,
+    CRITICAL,
+    UNKNOWN
+}
+
+// ============== AI INTELLIGENCE STATUS ==============
+
+@Serializable
+data class AIIntelligenceStatus(
+    val overallReady: Boolean = false,
+    val activeProviders: Int = 0,
+    val totalProviders: Int = 0,
+    val healthStatus: SystemHealth = SystemHealth.UNKNOWN,
+    val lastChecked: Long = System.currentTimeMillis()
+)
+
+// ============== TURKISH MEDICAL RESPONSE ==============
+
+@Serializable
+data class TurkishMedicalResponse(
+    val responseId: String = UUID.randomUUID().toString(),
+    val turkishResponse: String,
+    val confidence: Float,
+    val actionRequired: TurkishMedicalAction,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+@Serializable
+enum class TurkishMedicalAction {
+    NONE,
+    DOCTOR_CONSULTATION,
+    PHARMACY_VERIFICATION,
+    DOSAGE_ADJUSTMENT,
+    ALTERNATIVE_SUGGESTION,
+    EMERGENCY_REFERRAL
+}
+
+// ============== AI RECOMMENDATION ==============
+
+@Serializable
+data class AIRecommendation(
+    val recommendationId: String = UUID.randomUUID().toString(),
+    val message: String,
+    val severity: AISeverity,
+    val actionRequired: Boolean = false,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+@Serializable
+enum class AISeverity {
+    INFO,
+    WARNING,
+    ERROR,
+    CRITICAL
+}
+
+// ============== AI INTELLIGENCE ANALYTICS ==============
+
+@Serializable
+data class AIIntelligenceAnalytics(
+    val analyticsId: String = UUID.randomUUID().toString(),
+    val totalQueries: Int = 0,
+    val successRate: Float = 0f,
+    val averageResponseTime: Long = 0,
+    val popularQueries: List<String> = emptyList(),
+    val errorRate: Float = 0f,
+    val lastUpdated: Long = System.currentTimeMillis()
+)
