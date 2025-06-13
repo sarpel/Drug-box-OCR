@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.window.layout.DisplayFeature
 import androidx.window.layout.FoldingFeature
@@ -27,12 +28,23 @@ import androidx.window.layout.FoldingFeature
 @Composable
 fun rememberWindowSizeClass(): WindowSizeClass {
     val configuration = LocalConfiguration.current
-    return WindowSizeClass.calculateFromSize(
-        size = androidx.compose.ui.unit.DpSize(
-            width = configuration.screenWidthDp.dp,
-            height = configuration.screenHeightDp.dp
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
+    
+    return when {
+        screenWidth < 600.dp -> WindowSizeClass(
+            WindowWidthSizeClass.Compact,
+            WindowHeightSizeClass.Medium
         )
-    )
+        screenWidth < 840.dp -> WindowSizeClass(
+            WindowWidthSizeClass.Medium,
+            WindowHeightSizeClass.Medium
+        )
+        else -> WindowSizeClass(
+            WindowWidthSizeClass.Expanded,
+            WindowHeightSizeClass.Medium
+        )
+    }
 }
 
 // Device type detection
