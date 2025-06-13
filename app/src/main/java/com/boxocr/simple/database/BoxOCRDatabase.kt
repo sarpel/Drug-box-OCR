@@ -6,6 +6,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Provider
+import com.boxocr.simple.repository.TurkishDrugEntity
 
 /**
  * Main Database class for Box OCR App - Phase 2 Feature
@@ -17,6 +18,7 @@ import javax.inject.Provider
         ScanHistoryEntity::class,
         PrescriptionSessionEntity::class,
         DrugMatchingStatsEntity::class,
+        TurkishDrugEntity::class,
         // Phase 1 Enhancement: Visual Drug Database
         DrugBoxImageEntity::class,
         DrugBoxFeatureEntity::class,
@@ -33,6 +35,7 @@ abstract class BoxOCRDatabase : RoomDatabase() {
     abstract fun scanHistoryDao(): ScanHistoryDao
     abstract fun prescriptionSessionDao(): PrescriptionSessionDao
     abstract fun drugMatchingStatsDao(): DrugMatchingStatsDao
+    abstract fun turkishDrugDao(): com.boxocr.simple.repository.TurkishDrugDao
     
     // Phase 1 Enhancement: Visual Drug Database DAOs
     abstract fun drugBoxImageDao(): DrugBoxImageDao
@@ -49,8 +52,66 @@ abstract class BoxOCRDatabase : RoomDatabase() {
  * Type converters for Room database
  */
 class Converters {
-    // Add any type converters here if needed for complex data types
-    // Currently using simple types, but can be extended for JSON arrays, etc.
+    
+    @TypeConverter
+    fun fromDrugBoxCondition(condition: DrugBoxCondition): String {
+        return condition.name
+    }
+    
+    @TypeConverter
+    fun toDrugBoxCondition(condition: String): DrugBoxCondition {
+        return DrugBoxCondition.valueOf(condition)
+    }
+    
+    @TypeConverter
+    fun fromDrugBoxAngle(angle: DrugBoxAngle): String {
+        return angle.name
+    }
+    
+    @TypeConverter
+    fun toDrugBoxAngle(angle: String): DrugBoxAngle {
+        return DrugBoxAngle.valueOf(angle)
+    }
+    
+    @TypeConverter
+    fun fromDrugBoxLighting(lighting: DrugBoxLighting): String {
+        return lighting.name
+    }
+    
+    @TypeConverter
+    fun toDrugBoxLighting(lighting: String): DrugBoxLighting {
+        return DrugBoxLighting.valueOf(lighting)
+    }
+    
+    @TypeConverter
+    fun fromImageSource(source: ImageSource): String {
+        return source.name
+    }
+    
+    @TypeConverter
+    fun toImageSource(source: String): ImageSource {
+        return ImageSource.valueOf(source)
+    }
+    
+    @TypeConverter
+    fun fromVisualFeatureType(type: VisualFeatureType): String {
+        return type.name
+    }
+    
+    @TypeConverter
+    fun toVisualFeatureType(type: String): VisualFeatureType {
+        return VisualFeatureType.valueOf(type)
+    }
+    
+    @TypeConverter
+    fun fromCorrectionType(type: CorrectionType): String {
+        return type.name
+    }
+    
+    @TypeConverter
+    fun toCorrectionType(type: String): CorrectionType {
+        return CorrectionType.valueOf(type)
+    }
 }
 
 /**

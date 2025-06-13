@@ -16,9 +16,9 @@ import kotlinx.coroutines.flow.Flow
 @Entity(
     tableName = "drug_box_images",
     indices = [
-        Index(value = ["drugName"]),
+        Index(value = ["drug_name"]),
         Index(value = ["condition"]),
-        Index(value = ["createdAt"])
+        Index(value = ["created_at"])
     ]
 )
 data class DrugBoxImageEntity(

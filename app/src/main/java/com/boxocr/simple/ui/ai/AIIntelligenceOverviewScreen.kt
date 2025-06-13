@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.boxocr.simple.ai.*
+import com.boxocr.simple.repository.*
 
 /**
  * 🧠 PHASE 5: COMPREHENSIVE AI INTELLIGENCE OVERVIEW SCREEN

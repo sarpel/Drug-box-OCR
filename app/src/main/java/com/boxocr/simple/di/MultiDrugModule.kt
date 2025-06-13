@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import com.boxocr.simple.repository.*
+import com.boxocr.simple.database.BoxOCRDatabase
 import javax.inject.Singleton
 
 /**

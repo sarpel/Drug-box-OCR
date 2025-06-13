@@ -1,8 +1,6 @@
 package com.boxocr.simple.ai
 
-import android.bluetooth.BluetoothGatt
 import kotlinx.serialization.Serializable
-import java.util.*
 
 /**
  * 🔧 DATA MODELS FOR CUSTOM AI INTEGRATION
@@ -230,6 +228,14 @@ data class TurkishMedicalValidation(
     val validationDetails: String
 )
 
+@Serializable
+data class TurkishMedicalCertification(
+    val isValid: Boolean,
+    val certificateNumber: String,
+    val issuedBy: String,
+    val validUntil: Long
+)
+
 // ===== PRIVATE CLOUD AI INTEGRATION =====
 
 @Serializable
@@ -249,17 +255,15 @@ data class PrivateCloudAIConfig(
     val complianceLevel: ComplianceLevel
 )
 
-// ===== IOT INTEGRATION DATA MODELS (Additional) =====
+// ===== IOT INTEGRATION DATA MODELS =====
 
 @Serializable
-data class WeightScaleDevice(
-    val id: String,
-    val name: String,
-    val manufacturer: String,
-    val model: String,
-    val maxWeight: Float,
-    val bodyCompositionSupport: Boolean,
-    val connection: BluetoothGatt?
+data class MedicalReading(
+    val deviceId: String,
+    val readingType: String,
+    val value: Float,
+    val unit: String,
+    val timestamp: Long
 )
 
 @Serializable
@@ -270,57 +274,6 @@ data class VitalSignsSession(
     val startTime: Long,
     val isActive: Boolean,
     val readings: MutableList<MedicalReading>
-)
-
-@Serializable
-data class SmartPharmacyConfig(
-    val pharmacyId: String,
-    val pharmacyName: String,
-    val endpoint: String,
-    val apiKey: String,
-    val sgkEnabled: Boolean,
-    val medulaEnabled: Boolean,
-    val capabilities: List<String>
-)
-
-@Serializable
-data class SmartPharmacyConnection(
-    val pharmacyId: String,
-    val pharmacyName: String,
-    val endpoint: String,
-    val sgkIntegration: Boolean,
-    val medulaIntegration: Boolean,
-    val dispensingCapabilities: List<String>
-)
-
-@Serializable
-data class RemoteMonitoringConfig(
-    val doctorId: String,
-    val hospitalId: String,
-    val requiredDevices: List<MedicalDeviceType>,
-    val monitoringPlan: String
-)
-
-@Serializable
-data class RemotePatientSession(
-    val sessionId: String,
-    val patientId: String,
-    val doctorId: String,
-    val hospitalId: String,
-    val deviceTypes: List<MedicalDeviceType>,
-    val monitoringPlan: String,
-    val turkishTelemedicineCompliance: Boolean
-)
-
-@Serializable
-data class DeviceStatus(
-    val deviceId: String,
-    val isConnected: Boolean,
-    val batteryLevel: Int?,
-    val signalStrength: Int?,
-    val lastReading: MedicalReading?,
-    val calibrationStatus: String,
-    val turkishComplianceStatus: TurkishMedicalCertification
 )
 
 // ===== ENUMS AND CLASSIFICATIONS =====
@@ -394,143 +347,123 @@ enum class ComplianceLevel {
 }
 
 enum class TurkishMedicalCategory {
-    CARDIOLOGY("Kardiyoloji"),
-    DIABETES("Diyabet"),
-    HYPERTENSION("Hipertansiyon"),
-    RESPIRATORY("Solunum Sistemi"),
-    NEUROLOGY("Nöroloji"),
-    ONCOLOGY("Onkoloji"),
-    PEDIATRICS("Çocuk Hastalıkları"),
-    GERIATRICS("Geriatri"),
-    EMERGENCY("Acil Tıp"),
-    PHARMACY("Eczane"),
-    RADIOLOGY("Radyoloji"),
-    LABORATORY("Laboratuvar"),
-    SURGERY("Cerrahi"),
-    PSYCHIATRY("Psikiyatri"),
-    DERMATOLOGY("Dermatoloji"),
-    OPHTHALMOLOGY("Göz Hastalıkları"),
-    ENT("Kulak Burun Boğaz"),
-    UROLOGY("Üroloji"),
-    GYNECOLOGY("Kadın Hastalıkları"),
-    ORTHOPEDICS("Ortopedi");
-
-    constructor(displayName: String) {
-        this.displayName = displayName
-    }
-
-    val displayName: String
+    CARDIOLOGY,
+    NEUROLOGY,
+    ENDOCRINOLOGY,
+    GASTROENTEROLOGY,
+    PULMONOLOGY,
+    NEPHROLOGY,
+    RHEUMATOLOGY,
+    ONCOLOGY,
+    PSYCHIATRY,
+    DERMATOLOGY,
+    OPHTHALMOLOGY,
+    OTOLARYNGOLOGY,
+    GENERAL,
+    ANTIBIOTICS,
+    VITAMINS
 }
 
-// ===== ADVANCED AI MODELS DATA CLASSES =====
+enum class MedicalDeviceType {
+    BLOOD_PRESSURE_MONITOR,
+    GLUCOSE_METER,
+    HEART_RATE_MONITOR,
+    OXIMETER,
+    THERMOMETER,
+    WEIGHT_SCALE
+}
+
+// ===== SIMPLIFIED MEDICAL MODELS =====
 
 @Serializable
 data class ClinicalCase(
-    val patientContext: PatientContext,
+    val id: String,
+    val description: String,
     val symptoms: List<String>,
-    val currentMedications: List<String>,
-    val medicalHistory: String?,
-    val primaryConcern: String,
-    val medicalField: String
+    val patientContext: PatientContext
 )
 
 @Serializable
 data class PatientContext(
-    val profile: PatientProfile,
-    val symptoms: List<String>,
-    val urgencyLevel: UrgencyLevel
+    val symptoms: String,
+    val duration: String,
+    val severity: String
 )
 
 @Serializable
 data class PatientProfile(
-    val age: Int,
-    val gender: String,
-    val weight: Float,
-    val allergies: List<String>,
-    val chronicConditions: List<String>
+    val id: String,
+    val demographics: String,
+    val medicalHistory: String,
+    val currentMedications: List<String>,
+    val allergies: List<String>
 )
 
 @Serializable
 data class MedicalAnalysisResult(
-    val diagnosis: String,
-    val treatment: String,
-    val interactions: String,
-    val followUp: String,
-    val summary: String,
-    val confidence: Float
+    val analysis: String,
+    val confidence: Float,
+    val urgencyLevel: UrgencyLevel,
+    val evidenceLevel: EvidenceLevel,
+    val riskLevel: RiskLevel
 )
 
 @Serializable
 data class DrugInteractionAnalysis(
     val interactions: List<String>,
     val severity: String,
-    val recommendations: List<String>,
-    val monitoring: String,
-    val summary: String,
-    val riskLevel: RiskLevel
+    val recommendations: String,
+    val sources: List<String>
 )
 
 @Serializable
 data class MedicalResearchResult(
-    val findings: List<String>,
-    val guidelines: List<String>,
-    val evidenceLevel: EvidenceLevel,
-    val recommendations: List<String>,
+    val query: String,
+    val results: List<String>,
     val sources: List<String>,
-    val summary: String
+    val reliability: Float,
+    val lastUpdated: Long
 )
 
 @Serializable
 data class TurkishMedicalKnowledge(
-    val explanation: String,
-    val guidelines: List<String>,
-    val sgkCoverage: String,
-    val medulaInfo: String,
-    val culturalFactors: List<String>,
-    val reliability: Float
+    val topic: String,
+    val content: String,
+    val sources: List<String>,
+    val lastVerified: Long,
+    val certificationLevel: String
 )
 
 @Serializable
 data class MedicalConsensus(
-    val recommendation: String,
-    val warnings: List<String>,
-    val consensusConfidence: Float,
-    val modelCount: Int,
-    val criticalAlerts: List<String>
+    val question: String,
+    val consensus: String,
+    val agreementLevel: Float,
+    val sources: List<String>,
+    val lastUpdated: Long
 )
 
 @Serializable
 data class MedicalConsultation(
-    val id: String,
-    val type: String,
-    val timestamp: Long,
-    val input: String,
-    val output: String,
-    val confidence: Float,
-    val modelVersion: String
+    val caseId: String,
+    val recommendations: List<String>,
+    val followUpRequired: Boolean,
+    val urgencyLevel: UrgencyLevel,
+    val specialists: List<String>
 )
 
 @Serializable
 data class RiskLevel(
     val level: String,
-    val confidence: Float
-) {
-    companion object {
-        fun fromContent(content: String): RiskLevel {
-            return RiskLevel("Moderate", 0.7f) // Placeholder implementation
-        }
-    }
-}
+    val description: String
+)
 
 enum class UrgencyLevel {
     LOW, MODERATE, HIGH, CRITICAL
 }
 
-enum class EvidenceLevel(val confidence: Float) {
-    LOW(0.3f),
-    MODERATE(0.6f),
-    HIGH(0.8f),
-    VERY_HIGH(0.95f)
+enum class EvidenceLevel {
+    LOW, MEDIUM, HIGH, VERY_HIGH
 }
 
 // ===== API REQUEST/RESPONSE MODELS =====
@@ -539,8 +472,8 @@ enum class EvidenceLevel(val confidence: Float) {
 data class GPTRequest(
     val model: String,
     val messages: List<GPTMessage>,
-    val maxTokens: Int,
-    val temperature: Float
+    val temperature: Float = 0.7f,
+    val maxTokens: Int = 1000
 )
 
 @Serializable
@@ -562,9 +495,9 @@ data class GPTChoice(
 @Serializable
 data class ClaudeRequest(
     val model: String,
-    val maxTokens: Int,
     val messages: List<ClaudeMessage>,
-    val systemPrompt: String
+    val temperature: Float = 0.7f,
+    val maxTokens: Int = 1000
 )
 
 @Serializable
@@ -585,7 +518,6 @@ data class ClaudeContentBlock(
 
 @Serializable
 data class GeminiRequest(
-    val model: String,
     val contents: List<GeminiContent>,
     val generationConfig: GeminiGenerationConfig
 )
@@ -602,8 +534,8 @@ data class GeminiPart(
 
 @Serializable
 data class GeminiGenerationConfig(
-    val maxOutputTokens: Int,
-    val temperature: Float
+    val temperature: Float = 0.7f,
+    val maxOutputTokens: Int = 1000
 )
 
 @Serializable
@@ -614,217 +546,4 @@ data class GeminiResponse(
 @Serializable
 data class GeminiCandidate(
     val content: GeminiContent
-)
-
-// ===== UTILITY DATA CLASSES =====
-
-@Serializable
-data class AIModelCapabilities(
-    val textGeneration: Boolean = false,
-    val imageAnalysis: Boolean = false,
-    val speechRecognition: Boolean = false,
-    val turkishLanguageSupport: Boolean = false,
-    val medicalKnowledge: Boolean = false,
-    val drugInteractionAnalysis: Boolean = false,
-    val realTimeInference: Boolean = false,
-    val batchProcessing: Boolean = false,
-    val customFineTuning: Boolean = false,
-    val privacyCompliant: Boolean = false
-)
-
-@Serializable
-data class AIModelLimitations(
-    val maxTokensPerRequest: Int = 4096,
-    val requestsPerMinute: Int = 60,
-    val requestsPerDay: Int = 1000,
-    val maxFileSize: Long = 10 * 1024 * 1024, // 10MB
-    val supportedLanguages: List<String> = listOf("en", "tr"),
-    val requiresInternet: Boolean = true,
-    val requiresApiKey: Boolean = true,
-    val dataRetention: String = "No data retention"
-)
-
-@Serializable
-data class AIModelPricing(
-    val costPerToken: Float = 0.0f,
-    val costPerRequest: Float = 0.0f,
-    val costPerMonth: Float = 0.0f,
-    val freeTokensPerMonth: Int = 0,
-    val currency: String = "USD",
-    val turkishLiraEquivalent: Float = 0.0f
-)
-
-@Serializable
-data class CustomAIProviderMetadata(
-    val providerId: String,
-    val providerName: String,
-    val version: String,
-    val lastUpdated: Long,
-    val capabilities: AIModelCapabilities,
-    val limitations: AIModelLimitations,
-    val pricing: AIModelPricing,
-    val turkishMedicalCertification: TurkishMedicalCertification,
-    val supportContact: String,
-    val documentation: String,
-    val termsOfService: String,
-    val privacyPolicy: String
-)
-
-@Serializable
-data class LocalAIModelMetadata(
-    val modelId: String,
-    val modelName: String,
-    val creator: String,
-    val license: String,
-    val trainingDataset: String,
-    val accuracy: Float,
-    val modelSize: Long,
-    val inferenceSpeed: String,
-    val hardwareRequirements: String,
-    val turkishMedicalValidation: TurkishMedicalValidation?,
-    val lastValidated: Long,
-    val validationResults: Map<String, String>,
-    val usageStatistics: LocalModelUsageStats
-)
-
-@Serializable
-data class LocalModelUsageStats(
-    val totalInferences: Long = 0L,
-    val successfulInferences: Long = 0L,
-    val averageInferenceTime: Long = 0L,
-    val totalExecutionTime: Long = 0L,
-    val lastUsed: Long = 0L,
-    val popularUseCase: String = "Unknown",
-    val userRating: Float = 0.0f,
-    val performanceTrend: PerformanceTrend = PerformanceTrend.STABLE
-)
-
-enum class PerformanceTrend {
-    IMPROVING,
-    STABLE,
-    DEGRADING,
-    UNKNOWN
-}
-
-// ===== INTEGRATION STATUS AND MONITORING =====
-
-@Serializable
-data class AIIntegrationStatus(
-    val totalCustomProviders: Int = 0,
-    val activeCustomProviders: Int = 0,
-    val totalLocalModels: Int = 0,
-    val loadedLocalModels: Int = 0,
-    val totalInferencesToday: Long = 0L,
-    val averageResponseTime: Long = 0L,
-    val systemHealth: SystemHealth = SystemHealth.UNKNOWN,
-    val lastHealthCheck: Long = System.currentTimeMillis(),
-    val turkishMedicalCompliance: Boolean = true,
-    val storageUsed: Long = 0L,
-    val availableStorage: Long = 0L
-)
-
-enum class SystemHealth {
-    EXCELLENT,
-    GOOD,
-    FAIR,
-    POOR,
-    CRITICAL,
-    UNKNOWN
-}
-
-@Serializable
-data class AIPerformanceMetrics(
-    val providerId: String,
-    val providerName: String,
-    val requestsToday: Long = 0L,
-    val successfulRequests: Long = 0L,
-    val failedRequests: Long = 0L,
-    val averageResponseTime: Long = 0L,
-    val p95ResponseTime: Long = 0L,
-    val p99ResponseTime: Long = 0L,
-    val errorRate: Float = 0.0f,
-    val uptime: Float = 100.0f,
-    val lastIncident: Long = 0L,
-    val costToday: Float = 0.0f,
-    val tokensUsedToday: Long = 0L
-)
-
-// ===== SECURITY AND COMPLIANCE =====
-
-@Serializable
-data class AISecurityConfig(
-    val encryptionEnabled: Boolean = true,
-    val apiKeyEncrypted: Boolean = true,
-    val dataAnonymization: Boolean = true,
-    val auditLogging: Boolean = true,
-    val accessControl: AccessControlLevel = AccessControlLevel.STRICT,
-    val dataRetentionDays: Int = 30,
-    val gdprCompliant: Boolean = true,
-    val kvkvCompliant: Boolean = true,
-    val hipaaCompliant: Boolean = false,
-    val medicalDataProtection: Boolean = true
-)
-
-enum class AccessControlLevel {
-    NONE,
-    BASIC,
-    STANDARD,
-    STRICT,
-    ENTERPRISE
-}
-
-@Serializable
-data class AIAuditLog(
-    val id: String,
-    val timestamp: Long,
-    val userId: String?,
-    val action: String,
-    val resource: String,
-    val success: Boolean,
-    val details: String,
-    val ipAddress: String?,
-    val userAgent: String?,
-    val riskLevel: String
-)
-
-// ===== ERROR HANDLING AND RESILIENCE =====
-
-@Serializable
-data class AIErrorInfo(
-    val errorCode: String,
-    val errorMessage: String,
-    val errorType: AIErrorType,
-    val timestamp: Long,
-    val providerId: String?,
-    val modelId: String?,
-    val requestId: String?,
-    val retryable: Boolean,
-    val suggestedAction: String
-)
-
-enum class AIErrorType {
-    NETWORK_ERROR,
-    AUTHENTICATION_ERROR,
-    RATE_LIMIT_ERROR,
-    MODEL_ERROR,
-    INPUT_ERROR,
-    OUTPUT_ERROR,
-    TIMEOUT_ERROR,
-    QUOTA_EXCEEDED,
-    MODEL_NOT_FOUND,
-    CONFIGURATION_ERROR,
-    SYSTEM_ERROR,
-    UNKNOWN_ERROR
-}
-
-@Serializable
-data class AIFallbackConfig(
-    val primaryProviderId: String,
-    val fallbackProviders: List<String>,
-    val retryAttempts: Int = 3,
-    val retryDelay: Long = 1000L,
-    val circuitBreakerEnabled: Boolean = true,
-    val failureThreshold: Int = 5,
-    val recoveryTime: Long = 30000L,
-    val timeoutMs: Long = 30000L
 )

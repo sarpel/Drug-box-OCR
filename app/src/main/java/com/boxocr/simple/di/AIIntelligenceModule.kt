@@ -1,7 +1,7 @@
 package com.boxocr.simple.di
 
 import android.content.Context
-import com.boxocr.simple.ai.*
+import com.boxocr.simple.repository.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
     indices = [
         Index(value = ["name"], unique = true),
         Index(value = ["category"]),
-        Index(value = ["searchKeywords"])
+        Index(value = ["search_keywords"])
     ]
 )
 data class DrugEntity(

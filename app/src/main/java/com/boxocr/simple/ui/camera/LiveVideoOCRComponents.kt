@@ -65,7 +65,7 @@ private fun DrawScope.drawDrugBoxDetection(
     drugBox: DetectedDrugBox,
     previewSize: androidx.compose.ui.geometry.Size,
     canvasSize: androidx.compose.ui.geometry.Size,
-    showConfidence: Boolean: Boolean,
+    showConfidence: Boolean,
     showLabels: Boolean,
     density: androidx.compose.ui.units.Density
 ) {

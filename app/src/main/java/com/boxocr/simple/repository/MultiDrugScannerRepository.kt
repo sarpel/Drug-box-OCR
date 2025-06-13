@@ -1,28 +1,22 @@
 package com.boxocr.simple.repository
 
-import android.content.Context
 import android.graphics.Bitmap
-import android.net.Uri
-import androidx.camera.core.ImageProxy
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Multi-Drug Scanner Repository - Phase 1 Foundation Enhancement
+ * Multi-Drug Scanner Repository - Main Orchestrator for Phase 1 Enhancement
  * 
- * Main orchestrator that coordinates multi-drug detection, OCR processing,
- * and visual database matching for the revolutionary multi-drug scanner.
- * 
- * Integrates with existing batch scanning workflow and Windows automation.
+ * Coordinates all multi-drug detection components for comprehensive scanning workflow.
  */
 @Singleton
 class MultiDrugScannerRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val multiDrugObjectDetector: MultiDrugObjectDetector,
     private val multiRegionOCRRepository: MultiRegionOCRRepository,
     private val visualDrugDatabaseRepository: VisualDrugDatabaseRepository,
@@ -30,430 +24,235 @@ class MultiDrugScannerRepository @Inject constructor(
     private val turkishDrugDatabaseRepository: TurkishDrugDatabaseRepository
 ) {
     
-    // Combined processing state
-    private val _scannerState = MutableStateFlow<MultiDrugScannerState>(
-        MultiDrugScannerState.Idle
+    companion object {
+        private const val TAG = "MultiDrugScannerRepository"
+    }
+    
+    data class ScanConfiguration(
+        val enableObjectDetection: Boolean = true,
+        val enableVisualMatching: Boolean = true,
+        val enableTextRecovery: Boolean = true,
+        val minConfidence: Float = 0.7f,
+        val maxResults: Int = 10,
+        val parallelProcessing: Boolean = true
     )
-    val scannerState: StateFlow<MultiDrugScannerState> = _scannerState.asStateFlow()
     
-    // Live scanning state for video processing
-    private val _liveScanningActive = MutableStateFlow(false)
-    val liveScanningActive: StateFlow<Boolean> = _liveScanningActive.asStateFlow()
+    data class DrugDetectionResult(
+        val drugName: String,
+        val brandName: String?,
+        val confidence: Float,
+        val detectionMethod: String,
+        val boundingBox: android.graphics.Rect?,
+        val ocrText: String,
+        val visualMatch: Boolean,
+        val recoveredText: Boolean
+    )
     
-    // Recent results for continuity
-    private val recentResults = mutableListOf<MultiDrugScanResult>()
-    
-    /**
-     * Process image from camera capture
-     */
-    suspend fun processCameraImage(bitmap: Bitmap): MultiDrugScanResult {
-        return processMultiDrugImage(
-            ImageSource.CAMERA_CAPTURE,
-            bitmap
-        )
-    }
-    
-    /**
-     * Process image from gallery
-     */
-    suspend fun processGalleryImage(uri: Uri): MultiDrugScanResult {
-        return try {
-            val bitmap = loadBitmapFromUri(uri)
-            processMultiDrugImage(
-                ImageSource.GALLERY_IMPORT,
-                bitmap
-            )
-        } catch (e: Exception) {
-            MultiDrugScanResult.error("Galeri resmi yüklenemedi: ${e.message}")
-        }
-    }
+    data class ComprehensiveScanResult(
+        val detectedDrugs: List<DrugDetectionResult>,
+        val processingTimeMs: Long,
+        val totalRegionsProcessed: Int,
+        val objectDetectionUsed: Boolean,
+        val visualMatchingUsed: Boolean,
+        val textRecoveryUsed: Boolean,
+        val scanConfiguration: ScanConfiguration,
+        val qualityScore: Float
+    )
     
     /**
-     * Process live video frame
+     * Perform comprehensive multi-drug scanning
      */
-    suspend fun processLiveVideoFrame(imageProxy: ImageProxy): LiveScanResult {
-        return try {
-            val bitmap = convertImageProxyToBitmap(imageProxy)
-            
-            // Use multi-region OCR for live processing
-            val liveResult = multiRegionOCRRepository.processLiveFrame(
-                frame = bitmap,
-                previousResults = recentResults.map { it.ocrResult }.filterNotNull()
-            )
-            
-            LiveScanResult(
-                detectedDrugs = liveResult.result?.drugNames ?: emptyList(),
-                regionCount = liveResult.detectedRegionCount,
-                frameQuality = liveResult.frameQuality,
-                shouldCapture = liveResult.shouldCapture,
-                confidence = liveResult.result?.averageConfidence ?: 0f,
-                processingTime = liveResult.result?.processingTime ?: 0L
-            )
-            
-        } catch (e: Exception) {
-            LiveScanResult.error("Canlı tarama hatası: ${e.message}")
-        }
-    }
-    
-    /**
-     * Main multi-drug image processing pipeline
-     */
-    private suspend fun processMultiDrugImage(
-        source: ImageSource,
-        bitmap: Bitmap
-    ): MultiDrugScanResult {
-        return try {
-            _scannerState.value = MultiDrugScannerState.Processing(
-                "Çoklu ilaç taraması başlatılıyor..."
-            )
-            
-            val startTime = System.currentTimeMillis()
-            
-            // Step 1: Multi-region OCR processing
-            _scannerState.value = MultiDrugScannerState.Processing("İlaç kutuları tespit ediliyor...")
-            val ocrResult = multiRegionOCRRepository.processMultiRegionImage(bitmap)
-            
-            if (!ocrResult.success) {
-                return MultiDrugScanResult.error("OCR işlemi başarısız: ${ocrResult.errorMessage}")
-            }
-            
-            // Step 2: Enhanced matching with visual database
-            _scannerState.value = MultiDrugScannerState.Processing("Görsel eşleştirme yapılıyor...")
-            val enhancedResults = enhanceResultsWithVisualDatabase(ocrResult)
-            
-            // Step 3: Integrate with batch scanning workflow
-            _scannerState.value = MultiDrugScannerState.Processing("Batch işleme entegrasyonu...")
-            val batchResults = integratWithBatchScanning(enhancedResults, source)
-            
-            val totalTime = System.currentTimeMillis() - startTime
-            
-            val result = MultiDrugScanResult(
-                originalImage = bitmap,
-                ocrResult = ocrResult,
-                enhancedResults = enhancedResults,
-                batchIntegration = batchResults,
-                processingTime = totalTime,
-                success = enhancedResults.isNotEmpty(),
-                timestamp = System.currentTimeMillis(),
-                source = source
-            )
-            
-            // Store result for continuity
-            addToRecentResults(result)
-            
-            _scannerState.value = MultiDrugScannerState.Completed(
-                "${enhancedResults.size} ilaç başarıyla işlendi"
-            )
-            
-            result
-            
-        } catch (e: Exception) {
-            _scannerState.value = MultiDrugScannerState.Error(e.message ?: "Bilinmeyen hata")
-            MultiDrugScanResult.error("İşleme hatası: ${e.message}")
-        }
-    }
-    
-    /**
-     * Enhance OCR results with visual database matching
-     */
-    private suspend fun enhanceResultsWithVisualDatabase(
-        ocrResult: MultiDrugOCRResult
-    ): List<EnhancedDrugResult> {
-        val enhancedResults = mutableListOf<EnhancedDrugResult>()
+    suspend fun performComprehensiveScan(
+        bitmap: Bitmap,
+        configuration: ScanConfiguration = ScanConfiguration()
+    ): ComprehensiveScanResult = withContext(Dispatchers.IO) {
+        val startTime = System.currentTimeMillis()
         
-        for (regionResult in ocrResult.regions) {
-            // For damaged or low-confidence results, try visual recovery
-            val shouldTryVisualRecovery = regionResult.confidence < 0.7f || 
-                                        regionResult.drugMatch == null ||
-                                        regionResult.ocrText.length < 3
+        try {
+            val detectedDrugs = mutableListOf<DrugDetectionResult>()
+            var totalRegionsProcessed = 0
+            var objectDetectionUsed = false
+            var visualMatchingUsed = false
+            var textRecoveryUsed = false
             
-            val enhancedResult = if (shouldTryVisualRecovery) {
-                // Attempt visual recovery
-                val recoveryResult = visualDrugDatabaseRepository.recoverDamagedText(
-                    damagedBitmap = regionResult.region.bitmap,
-                    partialText = regionResult.ocrText,
-                    context = "multi_drug_scan"
-                )
-                
-                // Create enhanced result with recovery
-                EnhancedDrugResult(
-                    originalRegion = regionResult,
-                    finalDrugName = if (recoveryResult.confidence > regionResult.confidence) {
-                        recoveryResult.recoveredText
-                    } else {
-                        regionResult.drugMatch?.name ?: regionResult.ocrText
-                    },
-                    finalConfidence = maxOf(regionResult.confidence, recoveryResult.confidence),
-                    enhancementMethod = if (recoveryResult.confidence > regionResult.confidence) {
-                        EnhancementMethod.VISUAL_RECOVERY
-                    } else {
-                        EnhancementMethod.ORIGINAL_OCR
-                    },
-                    visualRecovery = recoveryResult,
-                    drugDatabaseMatch = regionResult.drugMatch
-                )
+            // Step 1: Object Detection for multiple drug boxes
+            val detections = if (configuration.enableObjectDetection) {
+                objectDetectionUsed = true
+                val detectionResult = multiDrugObjectDetector.detectDrugBoxes(bitmap)
+                totalRegionsProcessed = detectionResult.detections.size
+                detectionResult.detections
             } else {
-                // Use original OCR result
-                EnhancedDrugResult(
-                    originalRegion = regionResult,
-                    finalDrugName = regionResult.drugMatch?.name ?: regionResult.ocrText,
-                    finalConfidence = regionResult.confidence,
-                    enhancementMethod = EnhancementMethod.ORIGINAL_OCR,
-                    visualRecovery = null,
-                    drugDatabaseMatch = regionResult.drugMatch
+                // Treat entire image as single drug box
+                totalRegionsProcessed = 1
+                listOf(
+                    MultiDrugObjectDetector.DrugBoxDetection(
+                        boundingBox = android.graphics.Rect(0, 0, bitmap.width, bitmap.height),
+                        confidence = 1.0f,
+                        trackingId = null,
+                        croppedImage = bitmap
+                    )
                 )
             }
             
-            enhancedResults.add(enhancedResult)
-        }
-        
-        return enhancedResults
-    }
-    
-    /**
-     * Integrate with existing batch scanning workflow
-     */
-    private suspend fun integratWithBatchScanning(
-        enhancedResults: List<EnhancedDrugResult>,
-        source: ImageSource
-    ): BatchIntegrationResult {
-        return try {
-            val drugNames = enhancedResults.map { it.finalDrugName }.distinct()
-            val averageConfidence = enhancedResults.map { it.finalConfidence }.average().toFloat()
+            // Step 2: Multi-Region OCR Processing
+            val ocrResults = multiRegionOCRRepository.processMultipleRegions(bitmap, detections)
             
-            // Create batch scanning session for multi-drug results
-            val sessionId = batchScanningRepository.createBatchSession(
-                sessionName = "Multi-Drug Scan ${System.currentTimeMillis()}",
-                expectedItems = drugNames.size
-            )
-            
-            // Add each drug to batch session
-            val batchItems = drugNames.map { drugName ->
-                batchScanningRepository.addToBatch(
-                    sessionId = sessionId,
-                    drugName = drugName,
-                    confidence = enhancedResults.find { it.finalDrugName == drugName }?.finalConfidence ?: 0f,
-                    source = "multi_drug_scanner"
-                )
+            // Step 3: Process each region's results
+            for (regionResult in ocrResults.regions) {
+                if (regionResult.drugMatches.isNotEmpty()) {
+                    // Add results from OCR matches
+                    for (drugMatch in regionResult.drugMatches) {
+                        detectedDrugs.add(
+                            DrugDetectionResult(
+                                drugName = drugMatch.drug.drugName,
+                                brandName = drugMatch.drug.activeIngredient,
+                                confidence = drugMatch.confidence.toFloat(),
+                                detectionMethod = "ocr_${drugMatch.matchType}",
+                                boundingBox = regionResult.boundingBox,
+                                ocrText = regionResult.ocrText,
+                                visualMatch = false,
+                                recoveredText = false
+                            )
+                        )
+                    }
+                }
+                
+                // Step 4: Visual Similarity Matching (if enabled and no good OCR results)
+                if (configuration.enableVisualMatching && regionResult.drugMatches.isEmpty()) {
+                    visualMatchingUsed = true
+                    val visualMatches = visualDrugDatabaseRepository.findSimilarDrugBoxes(
+                        regionResult.boundingBox.let { 
+                            // Crop bitmap to region - simplified implementation
+                            bitmap
+                        }
+                    )
+                    
+                    for (visualMatch in visualMatches.matches) {
+                        detectedDrugs.add(
+                            DrugDetectionResult(
+                                drugName = visualMatch.drugName,
+                                brandName = null,
+                                confidence = visualMatch.confidence,
+                                detectionMethod = "visual_similarity",
+                                boundingBox = regionResult.boundingBox,
+                                ocrText = regionResult.ocrText,
+                                visualMatch = true,
+                                recoveredText = false
+                            )
+                        )
+                    }
+                }
             }
             
-            BatchIntegrationResult(
-                sessionId = sessionId,
-                batchItems = batchItems,
-                totalItems = drugNames.size,
-                averageConfidence = averageConfidence,
-                readyForWindowsAutomation = averageConfidence > 0.8f
+            // Step 5: Remove duplicates and rank results
+            val uniqueResults = removeDuplicatesAndRank(detectedDrugs, configuration.minConfidence)
+                .take(configuration.maxResults)
+            
+            // Step 6: Calculate quality score
+            val qualityScore = calculateScanQuality(uniqueResults, ocrResults)
+            
+            val totalProcessingTime = System.currentTimeMillis() - startTime
+            
+            ComprehensiveScanResult(
+                detectedDrugs = uniqueResults,
+                processingTimeMs = totalProcessingTime,
+                totalRegionsProcessed = totalRegionsProcessed,
+                objectDetectionUsed = objectDetectionUsed,
+                visualMatchingUsed = visualMatchingUsed,
+                textRecoveryUsed = textRecoveryUsed,
+                scanConfiguration = configuration,
+                qualityScore = qualityScore
             )
             
         } catch (e: Exception) {
-            BatchIntegrationResult.error("Batch entegrasyon hatası: ${e.message}")
-        }
-    }
-    
-    /**
-     * Start live video scanning
-     */
-    fun startLiveScanning() {
-        _liveScanningActive.value = true
-        _scannerState.value = MultiDrugScannerState.LiveScanning
-    }
-    
-    /**
-     * Stop live video scanning
-     */
-    fun stopLiveScanning() {
-        _liveScanningActive.value = false
-        _scannerState.value = MultiDrugScannerState.Idle
-    }
-    
-    /**
-     * Process batch of images
-     */
-    suspend fun processBatchImages(
-        imageUris: List<Uri>,
-        progressCallback: (Int, Int) -> Unit = { _, _ -> }
-    ): BatchMultiDrugResult {
-        val results = mutableListOf<MultiDrugScanResult>()
-        val errors = mutableListOf<String>()
-        
-        imageUris.forEachIndexed { index, uri ->
-            try {
-                _scannerState.value = MultiDrugScannerState.Processing(
-                    "İşleniyor ${index + 1}/${imageUris.size}"
-                )
-                
-                val result = processGalleryImage(uri)
-                results.add(result)
-                
-                progressCallback(index + 1, imageUris.size)
-                
-            } catch (e: Exception) {
-                errors.add("Resim ${index + 1}: ${e.message}")
-            }
-        }
-        
-        return BatchMultiDrugResult(
-            results = results,
-            successCount = results.count { it.success },
-            errorCount = errors.size,
-            totalCount = imageUris.size,
-            errors = errors,
-            totalDrugsFound = results.flatMap { it.enhancedResults.map { r -> r.finalDrugName } }.distinct().size
-        )
-    }
-    
-    /**
-     * Get combined state from all components
-     */
-    fun getCombinedState(): StateFlow<CombinedScannerState> {
-        return combine(
-            scannerState,
-            multiRegionOCRRepository.processingState,
-            visualDrugDatabaseRepository.processingState,
-            multiDrugObjectDetector.detectionState
-        ) { scanner, ocr, visual, detection ->
-            CombinedScannerState(
-                mainState = scanner,
-                ocrState = ocr,
-                visualState = visual,
-                detectionState = detection
+            Log.e(TAG, "Error during comprehensive scan", e)
+            ComprehensiveScanResult(
+                detectedDrugs = emptyList(),
+                processingTimeMs = System.currentTimeMillis() - startTime,
+                totalRegionsProcessed = 0,
+                objectDetectionUsed = false,
+                visualMatchingUsed = false,
+                textRecoveryUsed = false,
+                scanConfiguration = configuration,
+                qualityScore = 0.0f
             )
         }
     }
     
-    // Private helper methods
-    
-    private fun addToRecentResults(result: MultiDrugScanResult) {
-        recentResults.add(result)
-        // Keep only last 5 results for memory efficiency
-        if (recentResults.size > 5) {
-            recentResults.removeAt(0)
+    /**
+     * Perform real-time scanning for live camera feed
+     */
+    fun performLiveScan(bitmap: Bitmap): Flow<List<DrugDetectionResult>> = flow {
+        try {
+            val quickConfig = ScanConfiguration(
+                enableObjectDetection = true,
+                enableVisualMatching = false, // Disable for performance
+                enableTextRecovery = false,
+                minConfidence = 0.8f, // Higher threshold for live scanning
+                maxResults = 3, // Fewer results for speed
+                parallelProcessing = false
+            )
+            
+            val result = performComprehensiveScan(bitmap, quickConfig)
+            emit(result.detectedDrugs)
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during live scan", e)
+            emit(emptyList())
         }
+    }.flowOn(Dispatchers.IO)
+    
+    /**
+     * Remove duplicate detections and rank by confidence
+     */
+    private fun removeDuplicatesAndRank(
+        results: List<DrugDetectionResult>,
+        minConfidence: Float
+    ): List<DrugDetectionResult> {
+        return results
+            .filter { it.confidence >= minConfidence }
+            .groupBy { it.drugName.lowercase() }
+            .mapValues { (_, duplicates) ->
+                // Take the result with highest confidence for each drug
+                duplicates.maxByOrNull { it.confidence }
+            }
+            .values
+            .filterNotNull()
+            .sortedByDescending { it.confidence }
     }
     
-    private fun loadBitmapFromUri(uri: Uri): Bitmap {
-        // Implement bitmap loading from URI
-        // This would use ContentResolver to load the image
-        return Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888) // Placeholder
+    /**
+     * Calculate overall scan quality score
+     */
+    private fun calculateScanQuality(
+        results: List<DrugDetectionResult>,
+        ocrResults: MultiRegionOCRRepository.MultiRegionOCRResult
+    ): Float {
+        if (results.isEmpty()) return 0.0f
+        
+        val averageConfidence = results.map { it.confidence }.average().toFloat()
+        val successRate = results.size.toFloat() / maxOf(1, ocrResults.regions.size)
+        val qualityFactors = listOf(averageConfidence, successRate)
+        
+        return qualityFactors.average().toFloat()
     }
     
-    private fun convertImageProxyToBitmap(imageProxy: ImageProxy): Bitmap {
-        // Convert CameraX ImageProxy to Bitmap
-        // This would implement the actual conversion
-        return Bitmap.createBitmap(imageProxy.width, imageProxy.height, Bitmap.Config.ARGB_8888) // Placeholder
-    }
-}
-
-// Data classes for multi-drug scanning results
-
-data class MultiDrugScanResult(
-    val originalImage: Bitmap,
-    val ocrResult: MultiDrugOCRResult?,
-    val enhancedResults: List<EnhancedDrugResult>,
-    val batchIntegration: BatchIntegrationResult?,
-    val processingTime: Long,
-    val success: Boolean,
-    val errorMessage: String? = null,
-    val timestamp: Long,
-    val source: ImageSource
-) {
-    val drugCount: Int get() = enhancedResults.size
-    val averageConfidence: Float get() = enhancedResults.map { it.finalConfidence }.average().toFloat()
-    val drugNames: List<String> get() = enhancedResults.map { it.finalDrugName }.distinct()
-    
-    companion object {
-        fun error(message: String) = MultiDrugScanResult(
-            originalImage = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888),
-            ocrResult = null,
-            enhancedResults = emptyList(),
-            batchIntegration = null,
-            processingTime = 0L,
-            success = false,
-            errorMessage = message,
-            timestamp = System.currentTimeMillis(),
-            source = ImageSource.USER_UPLOAD
+    /**
+     * Get scan statistics
+     */
+    fun getScanStatistics(result: ComprehensiveScanResult): Map<String, Any> {
+        return mapOf(
+            "drugsDetected" to result.detectedDrugs.size,
+            "averageConfidence" to (result.detectedDrugs.map { it.confidence }.average().takeIf { !it.isNaN() } ?: 0.0),
+            "processingTime" to result.processingTimeMs,
+            "regionsProcessed" to result.totalRegionsProcessed,
+            "qualityScore" to result.qualityScore,
+            "detectionMethods" to result.detectedDrugs.groupingBy { it.detectionMethod }.eachCount(),
+            "configuraton" to mapOf(
+                "objectDetection" to result.objectDetectionUsed,
+                "visualMatching" to result.visualMatchingUsed,
+                "textRecovery" to result.textRecoveryUsed
+            )
         )
     }
-}
-
-data class EnhancedDrugResult(
-    val originalRegion: RegionOCRResult,
-    val finalDrugName: String,
-    val finalConfidence: Float,
-    val enhancementMethod: EnhancementMethod,
-    val visualRecovery: DamagedTextRecoveryResult?,
-    val drugDatabaseMatch: DrugMatch?
-)
-
-enum class EnhancementMethod {
-    ORIGINAL_OCR,        // Used original OCR result
-    VISUAL_RECOVERY,     // Enhanced with visual database
-    HYBRID_APPROACH,     // Combined OCR + visual
-    MANUAL_CORRECTION    // User-corrected result
-}
-
-data class BatchIntegrationResult(
-    val sessionId: String,
-    val batchItems: List<String>, // Batch item IDs
-    val totalItems: Int,
-    val averageConfidence: Float,
-    val readyForWindowsAutomation: Boolean,
-    val errorMessage: String? = null
-) {
-    companion object {
-        fun error(message: String) = BatchIntegrationResult(
-            sessionId = "",
-            batchItems = emptyList(),
-            totalItems = 0,
-            averageConfidence = 0f,
-            readyForWindowsAutomation = false,
-            errorMessage = message
-        )
-    }
-}
-
-data class LiveScanResult(
-    val detectedDrugs: List<String>,
-    val regionCount: Int,
-    val frameQuality: FrameQuality,
-    val shouldCapture: Boolean,
-    val confidence: Float,
-    val processingTime: Long,
-    val errorMessage: String? = null
-) {
-    companion object {
-        fun error(message: String) = LiveScanResult(
-            detectedDrugs = emptyList(),
-            regionCount = 0,
-            frameQuality = FrameQuality.ERROR,
-            shouldCapture = false,
-            confidence = 0f,
-            processingTime = 0L,
-            errorMessage = message
-        )
-    }
-}
-
-data class BatchMultiDrugResult(
-    val results: List<MultiDrugScanResult>,
-    val successCount: Int,
-    val errorCount: Int,
-    val totalCount: Int,
-    val errors: List<String>,
-    val totalDrugsFound: Int
-)
-
-data class CombinedScannerState(
-    val mainState: MultiDrugScannerState,
-    val ocrState: MultiRegionOCRState,
-    val visualState: VisualDatabaseState,
-    val detectionState: MultiDrugDetectionState
-)
-
-sealed class MultiDrugScannerState {
-    object Idle : MultiDrugScannerState()
-    object LiveScanning : MultiDrugScannerState()
-    data class Processing(val message: String) : MultiDrugScannerState()
-    data class Completed(val message: String) : MultiDrugScannerState()
-    data class Error(val message: String) : MultiDrugScannerState()
 }

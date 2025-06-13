@@ -1,600 +1,378 @@
 package com.boxocr.simple.repository
 
-import android.content.Context
 import android.graphics.Bitmap
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.withContext
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.max
-import kotlin.math.min
 
 /**
- * Damaged Text Recovery Repository - Phase 2 Week 3 Implementation
+ * Damaged Text Recovery Repository - Phase 1 Enhancement
  * 
- * Advanced AI-powered text reconstruction system for damaged, partial, or 
- * corrupted drug box text using multiple recovery strategies.
- * 
- * Combines Turkish medical context, visual similarity, and pattern matching
- * for superior text recovery in challenging conditions.
+ * Recovers and reconstructs damaged or partially readable text from drug boxes
+ * using AI-powered text restoration and medical context understanding.
  */
 @Singleton
 class DamagedTextRecoveryRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val ocrRepository: OCRRepository,
     private val turkishDrugDatabase: TurkishDrugDatabaseRepository,
     private val visualDrugDatabaseRepository: VisualDrugDatabaseRepository
 ) {
     
-    // Recovery state management
-    private val _recoveryState = MutableStateFlow<TextRecoveryState>(
-        TextRecoveryState.Idle
+    companion object {
+        private const val TAG = "DamagedTextRecoveryRepository"
+        private const val MIN_RECOVERY_CONFIDENCE = 0.6f
+    }
+    
+    data class RecoveryStrategy(
+        val name: String,
+        val description: String,
+        val confidence: Float,
+        val processingTimeMs: Long
     )
-    val recoveryState: StateFlow<TextRecoveryState> = _recoveryState.asStateFlow()
+    
+    data class RecoveredText(
+        val originalText: String,
+        val recoveredText: String,
+        val confidence: Float,
+        val recoveryMethod: String,
+        val alternativesFound: List<String>
+    )
+    
+    data class TextRecoveryResult(
+        val recoveredTexts: List<RecoveredText>,
+        val bestRecovery: RecoveredText?,
+        val strategiesUsed: List<RecoveryStrategy>,
+        val totalProcessingTimeMs: Long,
+        val qualityImprovement: Float
+    )
     
     /**
-     * Main text recovery pipeline - tries multiple strategies
+     * Attempt to recover damaged text using multiple strategies
      */
     suspend fun recoverDamagedText(
-        damagedBitmap: Bitmap,
-        partialText: String,
-        context: String = "",
-        recoveryMode: RecoveryMode = RecoveryMode.COMPREHENSIVE
-    ): DamagedTextRecoveryResult = withContext(Dispatchers.IO) {
+        bitmap: Bitmap,
+        damagedText: String
+    ): TextRecoveryResult = withContext(Dispatchers.IO) {
+        val startTime = System.currentTimeMillis()
+        
         try {
-            _recoveryState.value = TextRecoveryState.Processing("Hasarlı metin analiz ediliyor...")
+            val recoveredTexts = mutableListOf<RecoveredText>()
+            val strategiesUsed = mutableListOf<RecoveryStrategy>()
             
-            val startTime = System.currentTimeMillis()
-            val recoveryStrategies = getRecoveryStrategies(recoveryMode)
-            val allSuggestions = mutableListOf<TextSuggestion>()
+            // Strategy 1: Enhanced OCR with preprocessing
+            val enhancedOCRResult = recoverWithEnhancedOCR(bitmap, damagedText)
+            recoveredTexts.add(enhancedOCRResult.first)
+            strategiesUsed.add(enhancedOCRResult.second)
             
-            // Execute recovery strategies in order of priority
-            for (strategy in recoveryStrategies) {
-                _recoveryState.value = TextRecoveryState.Processing("${strategy.name} stratejisi uygulanıyor...")
-                
-                val suggestions = executeRecoveryStrategy(
-                    strategy = strategy,
-                    damagedBitmap = damagedBitmap,
-                    partialText = partialText,
-                    context = context
-                )
-                
-                allSuggestions.addAll(suggestions)
-                
-                // Early exit if we have high-confidence results
-                val bestSuggestion = suggestions.maxByOrNull { it.confidence }
-                if (bestSuggestion != null && bestSuggestion.confidence > 0.9f) {
-                    break
-                }
-            }
+            // Strategy 2: Pattern-based completion using Turkish drug database
+            val patternResult = recoverWithPatternMatching(damagedText)
+            recoveredTexts.add(patternResult.first)
+            strategiesUsed.add(patternResult.second)
             
-            // Rank and select best recovery result
-            val finalResult = selectBestRecoveryResult(allSuggestions, partialText)
+            // Strategy 3: Context-aware recovery using medical knowledge
+            val contextResult = recoverWithMedicalContext(damagedText)
+            recoveredTexts.add(contextResult.first)
+            strategiesUsed.add(contextResult.second)
+            
+            // Strategy 4: Visual similarity matching
+            val visualResult = recoverWithVisualSimilarity(bitmap, damagedText)
+            recoveredTexts.add(visualResult.first)
+            strategiesUsed.add(visualResult.second)
+            
+            // Strategy 5: ML-based character restoration
+            val mlResult = recoverWithMLRestoration(damagedText)
+            recoveredTexts.add(mlResult.first)
+            strategiesUsed.add(mlResult.second)
+            
+            // Find best recovery based on confidence
+            val bestRecovery = recoveredTexts
+                .filter { it.confidence >= MIN_RECOVERY_CONFIDENCE }
+                .maxByOrNull { it.confidence }
+            
+            val totalProcessingTime = System.currentTimeMillis() - startTime
+            val qualityImprovement = calculateQualityImprovement(damagedText, bestRecovery?.recoveredText)
+            
+            TextRecoveryResult(
+                recoveredTexts = recoveredTexts.sortedByDescending { it.confidence },
+                bestRecovery = bestRecovery,
+                strategiesUsed = strategiesUsed,
+                totalProcessingTimeMs = totalProcessingTime,
+                qualityImprovement = qualityImprovement
+            )
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during text recovery", e)
+            TextRecoveryResult(
+                recoveredTexts = emptyList(),
+                bestRecovery = null,
+                strategiesUsed = emptyList(),
+                totalProcessingTimeMs = System.currentTimeMillis() - startTime,
+                qualityImprovement = 0.0f
+            )
+        }
+    }
+    
+    /**
+     * Strategy 1: Enhanced OCR with image preprocessing
+     */
+    private suspend fun recoverWithEnhancedOCR(
+        bitmap: Bitmap,
+        damagedText: String
+    ): Pair<RecoveredText, RecoveryStrategy> {
+        val startTime = System.currentTimeMillis()
+        
+        return try {
+            // Apply advanced image enhancement for damaged text
+            val enhancedBitmap = enhanceForDamagedText(bitmap)
+            val ocrResult = ocrRepository.performEnhancedOCR(enhancedBitmap)
+            
             val processingTime = System.currentTimeMillis() - startTime
             
-            _recoveryState.value = TextRecoveryState.Completed(
-                "Metin kurtarma tamamlandı: ${finalResult.method.name}"
+            val recoveredText = RecoveredText(
+                originalText = damagedText,
+                recoveredText = ocrResult.text,
+                confidence = ocrResult.confidence,
+                recoveryMethod = "enhanced_ocr",
+                alternativesFound = emptyList()
             )
             
-            finalResult.copy(processingTime = processingTime)
+            val strategy = RecoveryStrategy(
+                name = "Enhanced OCR",
+                description = "Image preprocessing + advanced OCR",
+                confidence = ocrResult.confidence,
+                processingTimeMs = processingTime
+            )
+            
+            Pair(recoveredText, strategy)
             
         } catch (e: Exception) {
-            _recoveryState.value = TextRecoveryState.Error("Metin kurtarma hatası: ${e.message}")
-            
-            DamagedTextRecoveryResult(
-                recoveredText = partialText,
-                confidence = 0.1f,
-                method = RecoveryMethod.ERROR,
-                suggestions = emptyList(),
-                errorMessage = e.message,
-                processingTime = 0L
+            Log.e(TAG, "Enhanced OCR recovery failed", e)
+            Pair(
+                RecoveredText(damagedText, damagedText, 0.0f, "enhanced_ocr", emptyList()),
+                RecoveryStrategy("Enhanced OCR", "Failed", 0.0f, System.currentTimeMillis() - startTime)
             )
         }
     }
     
     /**
-     * Enhanced OCR with preprocessing for damaged text
+     * Strategy 2: Pattern-based completion using drug database
      */
-    suspend fun enhancedOCRRecovery(
-        damagedBitmap: Bitmap,
-        partialText: String
-    ): List<TextSuggestion> {
-        val suggestions = mutableListOf<TextSuggestion>()
+    private suspend fun recoverWithPatternMatching(
+        damagedText: String
+    ): Pair<RecoveredText, RecoveryStrategy> {
+        val startTime = System.currentTimeMillis()
         
-        // Strategy 1: Image enhancement + OCR
-        val enhancedBitmap = enhanceImageForOCR(damagedBitmap)
-        val enhancedPrompt = createDamagedTextPrompt(partialText)
-        
-        val enhancedOCRResult = ocrRepository.processImageWithPrompt(
-            bitmap = enhancedBitmap,
-            customPrompt = enhancedPrompt
-        )
-        
-        if (enhancedOCRResult.extractedText.isNotBlank()) {
-            val similarity = calculateTextSimilarity(partialText, enhancedOCRResult.extractedText)
-            suggestions.add(
-                TextSuggestion(
-                    text = enhancedOCRResult.cleanedText,
-                    confidence = similarity * 0.8f, // Moderate confidence for enhanced OCR
-                    source = "enhanced_ocr",
-                    drugName = enhancedOCRResult.cleanedText,
-                    metadata = mapOf(
-                        "original_confidence" to enhancedOCRResult.confidence.toString(),
-                        "processing_time" to enhancedOCRResult.processingTime.toString()
-                    )
-                )
-            )
-        }
-        
-        // Strategy 2: Multi-pass OCR with different preprocessing
-        val preprocessingMethods = listOf("contrast", "sharpen", "denoise", "rotate")
-        
-        for (method in preprocessingMethods) {
-            val preprocessedBitmap = applyPreprocessing(damagedBitmap, method)
-            val ocrResult = ocrRepository.processImageWithPrompt(
-                bitmap = preprocessedBitmap,
-                customPrompt = enhancedPrompt
+        return try {
+            // Search for similar patterns in Turkish drug database
+            val searchResults = turkishDrugDatabase.searchDrugs(
+                query = damagedText,
+                algorithm = TurkishDrugDatabaseRepository.MatchingAlgorithm.FUZZY,
+                minConfidence = 0.5,
+                maxResults = 5
             )
             
-            if (ocrResult.extractedText.isNotBlank()) {
-                val similarity = calculateTextSimilarity(partialText, ocrResult.extractedText)
-                if (similarity > 0.3f) {
-                    suggestions.add(
-                        TextSuggestion(
-                            text = ocrResult.cleanedText,
-                            confidence = similarity * 0.7f,
-                            source = "preprocessed_ocr_$method",
-                            drugName = ocrResult.cleanedText,
-                            metadata = mapOf("preprocessing" to method)
-                        )
-                    )
-                }
-            }
-        }
-        
-        return suggestions
-    }
-    
-    /**
-     * Pattern-based text completion using Turkish drug database
-     */
-    suspend fun patternBasedCompletion(partialText: String): List<TextSuggestion> {
-        val suggestions = mutableListOf<TextSuggestion>()
-        
-        // Clean and normalize partial text
-        val cleanPartial = cleanPartialText(partialText)
-        
-        if (cleanPartial.length < 2) {
-            return suggestions // Too short to work with
-        }
-        
-        // Strategy 1: Prefix matching
-        val prefixMatches = turkishDrugDatabase.findDrugsByPrefix(cleanPartial)
-        prefixMatches.forEach { drug ->
-            val confidence = calculatePrefixMatchConfidence(cleanPartial, drug.name)
-            if (confidence > 0.4f) {
-                suggestions.add(
-                    TextSuggestion(
-                        text = drug.name,
-                        confidence = confidence,
-                        source = "prefix_match",
-                        drugName = drug.name,
-                        metadata = mapOf(
-                            "atc_code" to (drug.atcCode ?: ""),
-                            "brand" to (drug.brand ?: "")
-                        )
-                    )
-                )
-            }
-        }
-        
-        // Strategy 2: Fuzzy matching with Turkish-specific rules
-        val fuzzyMatches = turkishDrugDatabase.findDrugsByFuzzyMatch(cleanPartial)
-        fuzzyMatches.forEach { match ->
-            if (match.confidence > 0.3f) {
-                suggestions.add(
-                    TextSuggestion(
-                        text = match.name,
-                        confidence = match.confidence * 0.9f, // Slightly lower confidence for fuzzy
-                        source = "fuzzy_match",
-                        drugName = match.name,
-                        metadata = mapOf(
-                            "edit_distance" to calculateEditDistance(cleanPartial, match.name).toString(),
-                            "match_type" to "fuzzy"
-                        )
-                    )
-                )
-            }
-        }
-        
-        // Strategy 3: Phonetic matching for Turkish
-        val phoneticMatches = turkishDrugDatabase.findDrugsByPhoneticMatch(cleanPartial)
-        phoneticMatches.forEach { match ->
-            suggestions.add(
-                TextSuggestion(
-                    text = match.name,
-                    confidence = match.confidence * 0.8f, // Lower confidence for phonetic
-                    source = "phonetic_match",
-                    drugName = match.name,
-                    metadata = mapOf("phonetic_algorithm" to "turkish_metaphone")
-                )
-            )
-        }
-        
-        // Strategy 4: Partial word reconstruction
-        val reconstructedSuggestions = reconstructPartialWords(cleanPartial)
-        suggestions.addAll(reconstructedSuggestions)
-        
-        return suggestions.distinctBy { it.text }.sortedByDescending { it.confidence }
-    }
-    
-    /**
-     * Context-aware recovery using medical knowledge
-     */
-    suspend fun contextAwareRecovery(
-        partialText: String,
-        medicalContext: String
-    ): List<TextSuggestion> {
-        val suggestions = mutableListOf<TextSuggestion>()
-        
-        // Extract context clues
-        val contextClues = extractMedicalContextClues(medicalContext)
-        
-        // Find drugs matching context
-        val contextualDrugs = turkishDrugDatabase.findDrugsByMedicalContext(contextClues)
-        
-        for (drug in contextualDrugs) {
-            val textSimilarity = calculateTextSimilarity(partialText, drug.name)
-            val contextRelevance = calculateContextRelevance(drug, contextClues)
-            val combinedConfidence = (textSimilarity * 0.6f) + (contextRelevance * 0.4f)
+            val processingTime = System.currentTimeMillis() - startTime
             
-            if (combinedConfidence > 0.3f) {
-                suggestions.add(
-                    TextSuggestion(
-                        text = drug.name,
-                        confidence = combinedConfidence,
-                        source = "context_aware",
-                        drugName = drug.name,
-                        metadata = mapOf(
-                            "context_clues" to contextClues.joinToString(","),
-                            "text_similarity" to textSimilarity.toString(),
-                            "context_relevance" to contextRelevance.toString()
-                        )
-                    )
-                )
-            }
-        }
-        
-        return suggestions.sortedByDescending { it.confidence }
-    }
-    
-    /**
-     * Machine learning-based character restoration
-     */
-    suspend fun mlCharacterRestoration(
-        damagedBitmap: Bitmap,
-        partialText: String
-    ): List<TextSuggestion> {
-        val suggestions = mutableListOf<TextSuggestion>()
-        
-        try {
-            // Identify damaged/missing character positions
-            val damageAnalysis = analyzeDamagePattern(damagedBitmap, partialText)
-            
-            // For each damaged position, predict likely characters
-            val restoredVariants = mutableListOf<String>()
-            
-            for (damageInfo in damageAnalysis.damagedPositions) {
-                val characterPredictions = predictMissingCharacter(
-                    context = partialText,
-                    position = damageInfo.position,
-                    visualContext = damageInfo.visualClues
+            if (searchResults.isNotEmpty()) {
+                val bestMatch = searchResults.first()
+                val alternatives = searchResults.drop(1).map { it.drug.drugName }
+                
+                val recoveredText = RecoveredText(
+                    originalText = damagedText,
+                    recoveredText = bestMatch.drug.drugName,
+                    confidence = bestMatch.confidence.toFloat(),
+                    recoveryMethod = "pattern_matching",
+                    alternativesFound = alternatives
                 )
                 
-                // Generate text variants with predicted characters
-                characterPredictions.forEach { prediction ->
-                    val restoredText = insertCharacterAtPosition(
-                        partialText, 
-                        damageInfo.position, 
-                        prediction.character
-                    )
-                    
-                    if (isValidTurkishDrugName(restoredText)) {
-                        restoredVariants.add(restoredText)
-                    }
-                }
-            }
-            
-            // Validate restored variants against drug database
-            for (variant in restoredVariants) {
-                val drugMatch = turkishDrugDatabase.findExactMatch(variant)
-                if (drugMatch != null) {
-                    suggestions.add(
-                        TextSuggestion(
-                            text = variant,
-                            confidence = 0.85f, // High confidence for ML restoration + DB match
-                            source = "ml_character_restoration",
-                            drugName = variant,
-                            metadata = mapOf(
-                                "restoration_method" to "ml_character_prediction",
-                                "damaged_positions" to damageAnalysis.damagedPositions.size.toString()
-                            )
-                        )
-                    )
-                }
+                val strategy = RecoveryStrategy(
+                    name = "Pattern Matching",
+                    description = "Fuzzy matching against drug database",
+                    confidence = bestMatch.confidence.toFloat(),
+                    processingTimeMs = processingTime
+                )
+                
+                Pair(recoveredText, strategy)
+            } else {
+                Pair(
+                    RecoveredText(damagedText, damagedText, 0.0f, "pattern_matching", emptyList()),
+                    RecoveryStrategy("Pattern Matching", "No matches found", 0.0f, processingTime)
+                )
             }
             
         } catch (e: Exception) {
-            // ML restoration failed, return empty suggestions
+            Log.e(TAG, "Pattern matching recovery failed", e)
+            Pair(
+                RecoveredText(damagedText, damagedText, 0.0f, "pattern_matching", emptyList()),
+                RecoveryStrategy("Pattern Matching", "Failed", 0.0f, System.currentTimeMillis() - startTime)
+            )
         }
+    }
+    
+    /**
+     * Strategy 3: Context-aware recovery using medical knowledge
+     */
+    private suspend fun recoverWithMedicalContext(
+        damagedText: String
+    ): Pair<RecoveredText, RecoveryStrategy> {
+        val startTime = System.currentTimeMillis()
         
-        return suggestions.sortedByDescending { it.confidence }
-    }
-    
-    // Private helper methods
-    
-    private fun getRecoveryStrategies(mode: RecoveryMode): List<RecoveryStrategy> {
-        return when (mode) {
-            RecoveryMode.FAST -> listOf(
-                RecoveryStrategy.PATTERN_COMPLETION,
-                RecoveryStrategy.ENHANCED_OCR
+        return try {
+            // Apply medical context understanding
+            val correctedText = applyMedicalContextCorrection(damagedText)
+            val confidence = calculateContextConfidence(damagedText, correctedText)
+            
+            val processingTime = System.currentTimeMillis() - startTime
+            
+            val recoveredText = RecoveredText(
+                originalText = damagedText,
+                recoveredText = correctedText,
+                confidence = confidence,
+                recoveryMethod = "medical_context",
+                alternativesFound = emptyList()
             )
-            RecoveryMode.BALANCED -> listOf(
-                RecoveryStrategy.ENHANCED_OCR,
-                RecoveryStrategy.PATTERN_COMPLETION,
-                RecoveryStrategy.VISUAL_SIMILARITY,
-                RecoveryStrategy.CONTEXT_AWARE
+            
+            val strategy = RecoveryStrategy(
+                name = "Medical Context",
+                description = "Medical knowledge-based correction",
+                confidence = confidence,
+                processingTimeMs = processingTime
             )
-            RecoveryMode.COMPREHENSIVE -> listOf(
-                RecoveryStrategy.ENHANCED_OCR,
-                RecoveryStrategy.PATTERN_COMPLETION,
-                RecoveryStrategy.VISUAL_SIMILARITY,
-                RecoveryStrategy.CONTEXT_AWARE,
-                RecoveryStrategy.ML_CHARACTER_RESTORATION
+            
+            Pair(recoveredText, strategy)
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Medical context recovery failed", e)
+            Pair(
+                RecoveredText(damagedText, damagedText, 0.0f, "medical_context", emptyList()),
+                RecoveryStrategy("Medical Context", "Failed", 0.0f, System.currentTimeMillis() - startTime)
             )
-            RecoveryMode.VISUAL_ONLY -> listOf(
-                RecoveryStrategy.VISUAL_SIMILARITY,
-                RecoveryStrategy.ENHANCED_OCR
-            )
-        }
-    }
-    
-    private suspend fun executeRecoveryStrategy(
-        strategy: RecoveryStrategy,
-        damagedBitmap: Bitmap,
-        partialText: String,
-        context: String
-    ): List<TextSuggestion> {
-        return when (strategy) {
-            RecoveryStrategy.ENHANCED_OCR -> enhancedOCRRecovery(damagedBitmap, partialText)
-            RecoveryStrategy.PATTERN_COMPLETION -> patternBasedCompletion(partialText)
-            RecoveryStrategy.VISUAL_SIMILARITY -> {
-                val visualResult = visualDrugDatabaseRepository.recoverDamagedText(
-                    damagedBitmap, partialText, context
-                )
-                visualResult.suggestions
-            }
-            RecoveryStrategy.CONTEXT_AWARE -> contextAwareRecovery(partialText, context)
-            RecoveryStrategy.ML_CHARACTER_RESTORATION -> mlCharacterRestoration(damagedBitmap, partialText)
         }
     }
     
-    private fun selectBestRecoveryResult(
-        allSuggestions: List<TextSuggestion>,
-        originalPartialText: String
-    ): DamagedTextRecoveryResult {
-        if (allSuggestions.isEmpty()) {
-            return DamagedTextRecoveryResult(
-                recoveredText = originalPartialText,
-                confidence = 0.1f,
-                method = RecoveryMethod.FAILED,
-                suggestions = emptyList()
-            )
-        }
+    /**
+     * Strategy 4: Visual similarity matching
+     */
+    private suspend fun recoverWithVisualSimilarity(
+        bitmap: Bitmap,
+        damagedText: String
+    ): Pair<RecoveredText, RecoveryStrategy> {
+        val startTime = System.currentTimeMillis()
         
-        // Group suggestions by text and combine confidences
-        val groupedSuggestions = allSuggestions
-            .groupBy { it.text }
-            .map { (text, suggestions) ->
-                val combinedConfidence = combineConfidences(suggestions.map { it.confidence })
-                val primarySuggestion = suggestions.maxByOrNull { it.confidence }!!
+        return try {
+            val similarityResult = visualDrugDatabaseRepository.findSimilarDrugBoxes(bitmap)
+            
+            val processingTime = System.currentTimeMillis() - startTime
+            
+            if (similarityResult.matches.isNotEmpty()) {
+                val bestMatch = similarityResult.matches.first()
+                val alternatives = similarityResult.matches.drop(1).map { it.drugName }
                 
-                primarySuggestion.copy(
-                    confidence = combinedConfidence,
-                    source = suggestions.joinToString("+") { it.source }
+                val recoveredText = RecoveredText(
+                    originalText = damagedText,
+                    recoveredText = bestMatch.drugName,
+                    confidence = bestMatch.confidence,
+                    recoveryMethod = "visual_similarity",
+                    alternativesFound = alternatives
+                )
+                
+                val strategy = RecoveryStrategy(
+                    name = "Visual Similarity",
+                    description = "Visual feature matching",
+                    confidence = bestMatch.confidence,
+                    processingTimeMs = processingTime
+                )
+                
+                Pair(recoveredText, strategy)
+            } else {
+                Pair(
+                    RecoveredText(damagedText, damagedText, 0.0f, "visual_similarity", emptyList()),
+                    RecoveryStrategy("Visual Similarity", "No matches found", 0.0f, processingTime)
                 )
             }
-            .sortedByDescending { it.confidence }
-        
-        val bestSuggestion = groupedSuggestions.first()
-        val method = determineRecoveryMethod(bestSuggestion.source, bestSuggestion.confidence)
-        
-        return DamagedTextRecoveryResult(
-            recoveredText = bestSuggestion.text,
-            confidence = bestSuggestion.confidence,
-            method = method,
-            suggestions = groupedSuggestions.take(5), // Top 5 suggestions
-            processingTime = 0L // Will be set by caller
-        )
-    }
-    
-    // Utility methods (simplified implementations)
-    
-    private fun enhanceImageForOCR(bitmap: Bitmap): Bitmap {
-        // Implement image enhancement (contrast, sharpening, noise reduction)
-        return bitmap // Placeholder
-    }
-    
-    private fun createDamagedTextPrompt(partialText: String): String {
-        return """
-        Bu görüntüde hasarlı veya kısmen görünen bir Türkçe ilaç ismi var.
-        Kısmi metin: "$partialText"
-        
-        Lütfen:
-        1. Hasarlı/eksik harfleri tahmin edin
-        2. Türkçe ilaç isimleri kurallarını kullanın
-        3. Tam ilaç ismini yeniden oluşturun
-        4. Sadece en olası ilaç ismini döndürün
-        
-        Hasarlı metin kurtarma modu: AKTIF
-        Türkçe medikal terminoloji: AKTIF
-        """.trimIndent()
-    }
-    
-    private fun applyPreprocessing(bitmap: Bitmap, method: String): Bitmap {
-        // Implement various preprocessing methods
-        return bitmap // Placeholder
-    }
-    
-    private fun cleanPartialText(text: String): String {
-        return text.trim()
-            .replace(Regex("[^a-zA-ZçÇğĞıİöÖşŞüÜ\\s]"), "")
-            .replace(Regex("\\s+"), " ")
-    }
-    
-    private fun calculateTextSimilarity(text1: String, text2: String): Float {
-        val maxLength = maxOf(text1.length, text2.length)
-        if (maxLength == 0) return 1f
-        
-        val distance = calculateEditDistance(text1, text2)
-        return 1f - (distance.toFloat() / maxLength)
-    }
-    
-    private fun calculateEditDistance(s1: String, s2: String): Int {
-        val dp = Array(s1.length + 1) { IntArray(s2.length + 1) }
-        
-        for (i in 0..s1.length) dp[i][0] = i
-        for (j in 0..s2.length) dp[0][j] = j
-        
-        for (i in 1..s1.length) {
-            for (j in 1..s2.length) {
-                dp[i][j] = if (s1[i - 1] == s2[j - 1]) {
-                    dp[i - 1][j - 1]
-                } else {
-                    1 + minOf(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
-                }
-            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Visual similarity recovery failed", e)
+            Pair(
+                RecoveredText(damagedText, damagedText, 0.0f, "visual_similarity", emptyList()),
+                RecoveryStrategy("Visual Similarity", "Failed", 0.0f, System.currentTimeMillis() - startTime)
+            )
         }
+    }
+    
+    /**
+     * Strategy 5: ML-based character restoration
+     */
+    private suspend fun recoverWithMLRestoration(
+        damagedText: String
+    ): Pair<RecoveredText, RecoveryStrategy> {
+        val startTime = System.currentTimeMillis()
         
-        return dp[s1.length][s2.length]
+        return try {
+            // Apply ML-based character restoration
+            val restoredText = performMLCharacterRestoration(damagedText)
+            val confidence = calculateMLConfidence(damagedText, restoredText)
+            
+            val processingTime = System.currentTimeMillis() - startTime
+            
+            val recoveredText = RecoveredText(
+                originalText = damagedText,
+                recoveredText = restoredText,
+                confidence = confidence,
+                recoveryMethod = "ml_restoration",
+                alternativesFound = emptyList()
+            )
+            
+            val strategy = RecoveryStrategy(
+                name = "ML Restoration",
+                description = "Machine learning character restoration",
+                confidence = confidence,
+                processingTimeMs = processingTime
+            )
+            
+            Pair(recoveredText, strategy)
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "ML restoration failed", e)
+            Pair(
+                RecoveredText(damagedText, damagedText, 0.0f, "ml_restoration", emptyList()),
+                RecoveryStrategy("ML Restoration", "Failed", 0.0f, System.currentTimeMillis() - startTime)
+            )
+        }
     }
     
-    private fun calculatePrefixMatchConfidence(prefix: String, fullText: String): Float {
-        if (prefix.isEmpty() || fullText.isEmpty()) return 0f
-        if (!fullText.lowercase().startsWith(prefix.lowercase())) return 0f
-        
-        return prefix.length.toFloat() / fullText.length.toFloat()
+    // Helper methods (simplified implementations)
+    
+    private fun enhanceForDamagedText(bitmap: Bitmap): Bitmap {
+        // Placeholder - would implement actual image enhancement
+        return bitmap
     }
     
-    private fun reconstructPartialWords(partialText: String): List<TextSuggestion> {
-        // Implement word reconstruction logic
-        return emptyList() // Placeholder
+    private fun applyMedicalContextCorrection(text: String): String {
+        // Placeholder - would implement medical context correction
+        return text
     }
     
-    private fun extractMedicalContextClues(context: String): List<String> {
-        // Extract medical context information
-        return emptyList() // Placeholder
+    private fun calculateContextConfidence(original: String, corrected: String): Float {
+        return if (original == corrected) 0.5f else 0.75f
     }
     
-    private fun calculateContextRelevance(drug: DrugMatch, contextClues: List<String>): Float {
-        // Calculate how relevant the drug is to the medical context
-        return 0.5f // Placeholder
+    private fun performMLCharacterRestoration(text: String): String {
+        // Placeholder - would implement ML-based restoration
+        return text
     }
     
-    private fun analyzeDamagePattern(bitmap: Bitmap, partialText: String): DamageAnalysis {
-        // Analyze the damage pattern in the image
-        return DamageAnalysis(emptyList()) // Placeholder
+    private fun calculateMLConfidence(original: String, restored: String): Float {
+        return if (original == restored) 0.5f else 0.8f
     }
     
-    private fun predictMissingCharacter(
-        context: String,
-        position: Int,
-        visualClues: List<String>
-    ): List<CharacterPrediction> {
-        // Predict missing characters using ML
-        return emptyList() // Placeholder
-    }
-    
-    private fun insertCharacterAtPosition(text: String, position: Int, character: Char): String {
-        return if (position <= text.length) {
-            text.substring(0, position) + character + text.substring(position)
+    private fun calculateQualityImprovement(original: String?, recovered: String?): Float {
+        return if (original != null && recovered != null && recovered.length > original.length) {
+            0.3f // Placeholder improvement score
         } else {
-            text + character
+            0.0f
         }
     }
-    
-    private fun isValidTurkishDrugName(text: String): Boolean {
-        // Validate if the text could be a valid Turkish drug name
-        return text.length >= 3 && text.matches(Regex("[a-zA-ZçÇğĞıİöÖşŞüÜ\\s]+"))
-    }
-    
-    private fun combineConfidences(confidences: List<Float>): Float {
-        // Combine multiple confidence scores
-        return confidences.maxOrNull() ?: 0f
-    }
-    
-    private fun determineRecoveryMethod(source: String, confidence: Float): RecoveryMethod {
-        return when {
-            source.contains("visual") -> RecoveryMethod.VISUAL_SIMILARITY
-            source.contains("pattern") -> RecoveryMethod.PARTIAL_COMPLETION
-            source.contains("ml") -> RecoveryMethod.ML_RESTORATION
-            source.contains("context") -> RecoveryMethod.CONTEXT_AWARE
-            else -> RecoveryMethod.ENHANCED_OCR
-        }
-    }
-}
-
-// Data classes and enums
-
-enum class RecoveryMode {
-    FAST,           // Quick recovery with basic strategies
-    BALANCED,       // Good balance of speed and accuracy
-    COMPREHENSIVE,  // All strategies for maximum accuracy
-    VISUAL_ONLY     // Only visual-based strategies
-}
-
-enum class RecoveryStrategy {
-    ENHANCED_OCR,
-    PATTERN_COMPLETION,
-    VISUAL_SIMILARITY,
-    CONTEXT_AWARE,
-    ML_CHARACTER_RESTORATION
-}
-
-enum class RecoveryMethod {
-    ENHANCED_OCR,
-    VISUAL_SIMILARITY,
-    PARTIAL_COMPLETION,
-    CONTEXT_AWARE,
-    ML_RESTORATION,
-    HYBRID_APPROACH,
-    NO_VISUAL_MATCH,
-    FAILED,
-    ERROR
-}
-
-data class DamageAnalysis(
-    val damagedPositions: List<DamageInfo>
-)
-
-data class DamageInfo(
-    val position: Int,
-    val visualClues: List<String>,
-    val damageType: String
-)
-
-data class CharacterPrediction(
-    val character: Char,
-    val confidence: Float
-)
-
-sealed class TextRecoveryState {
-    object Idle : TextRecoveryState()
-    data class Processing(val message: String) : TextRecoveryState()
-    data class Completed(val message: String) : TextRecoveryState()
-    data class Error(val message: String) : TextRecoveryState()
 }

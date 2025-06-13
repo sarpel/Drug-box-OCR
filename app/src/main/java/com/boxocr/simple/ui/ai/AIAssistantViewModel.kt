@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
-import com.boxocr.simple.ai.*
+import com.boxocr.simple.repository.*
 import javax.inject.Inject
 
 /**

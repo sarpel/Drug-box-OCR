@@ -2,7 +2,6 @@ package com.boxocr.simple.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -14,11 +13,7 @@ import androidx.compose.ui.unit.sp
  */
 
 // Font families optimized for Turkish characters
-val TurkishMedicalFontFamily = FontFamily(
-    Font(android.R.font.roboto_medium, FontWeight.Medium),
-    Font(android.R.font.roboto_bold, FontWeight.Bold),
-    Font(android.R.font.roboto_light, FontWeight.Light)
-)
+val TurkishMedicalFontFamily = FontFamily.Default
 
 // Alternative font for better Turkish character support
 val TurkishSystemFontFamily = FontFamily.Default
@@ -258,6 +253,9 @@ val TurkishMedicalTabletTypography = Typography(
         letterSpacing = 0.5.sp
     )
 )
+
+// Export the main typography as AppTypography
+val AppTypography = TurkishMedicalTypography
 
 // Special typography styles for medical content
 object MedicalTypography {
