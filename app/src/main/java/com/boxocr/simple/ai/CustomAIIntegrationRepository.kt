@@ -2,6 +2,7 @@ package com.boxocr.simple.ai
 
 import android.content.Context
 import android.util.Log
+import com.boxocr.simple.data.LocalModelType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

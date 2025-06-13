@@ -7,6 +7,7 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.boxocr.simple.ui.history.PrescriptionStatus
 import com.boxocr.simple.repository.TimingProfile
+import com.boxocr.simple.database.VisualFeatureType
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.util.UUID
@@ -690,15 +691,6 @@ enum class FeatureType {
     TEXTURE_FEATURES
 }
 
-enum class VisualFeatureType {
-    SIFT,
-    COLOR_HISTOGRAM,
-    TEXT_LAYOUT,
-    EDGE_FEATURES,
-    SHAPE_FEATURES,
-    TEXTURE_FEATURES
-}
-
 data class FeatureData(
     val type: VisualFeatureType,
     val data: FloatArray,
@@ -1138,12 +1130,26 @@ data class CustomAIConfiguration(
     val priority: Int = 0
 )
 
+/**
+ * Local AI Model Type definitions
+ */
+@Serializable
+enum class LocalModelType {
+    TENSORFLOW_LITE,
+    ONNX,
+    CUSTOM_BINARY,
+    PYTORCH_MOBILE,
+    OPENVINO,
+    TENSORRT,
+    COREML
+}
+
 @Serializable
 data class LocalAIModel(
     val modelId: String,
     val name: String,
     val filePath: String,
-    val modelType: String,
+    val modelType: LocalModelType,
     val version: String,
     val size: Long,
     val isLoaded: Boolean = false,
@@ -1162,12 +1168,3 @@ data class PatientContext(
     val conditions: List<String> = emptyList(),
     val notes: String = ""
 )
-
-enum class VisualFeatureType {
-    SIFT_FEATURES,
-    COLOR_HISTOGRAM,
-    TEXT_LAYOUT,
-    EDGE_FEATURES,
-    SHAPE_FEATURES,
-    TEXTURE_FEATURES
-}

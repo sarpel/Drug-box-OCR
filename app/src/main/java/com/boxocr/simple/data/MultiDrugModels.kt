@@ -113,13 +113,5 @@ enum class DrugBoxLighting {
     OPTIMAL, GOOD, POOR, VERY_POOR
 }
 
-enum class VisualFeatureType {
-    COLOR, SHAPE, SIZE, TEXT, LOGO, PATTERN
-}
-
-enum class CorrectionType {
-    MANUAL, AI_SUGGESTED, DATABASE_MATCH, VISUAL_MATCH
-}
-
 // Extension functions for convenience
 fun List<MultiDrugResult>.toMutableList(): MutableList<MultiDrugResult> = this.toMutableList()

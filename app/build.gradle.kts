@@ -211,6 +211,7 @@ dependencies {
 
     // Fix Material3 adaptive versions
     implementation("androidx.compose.material3:material3-window-size-class")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite")
     // Removed specific versions of material3-adaptive and material3-adaptive-navigation-suite, relying on Compose BOM for version management.
     // implementation("androidx.compose.material3:material3-adaptive:1.0.0-alpha05")
     // implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.0.0-alpha02")

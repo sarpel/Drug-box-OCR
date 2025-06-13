@@ -7,6 +7,23 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Provider
 import com.boxocr.simple.repository.TurkishDrugEntity
+// Phase 1 Enhancement: Visual Drug Database Entities imports
+import com.boxocr.simple.database.DrugBoxImageEntity
+import com.boxocr.simple.database.DrugBoxFeatureEntity
+import com.boxocr.simple.database.VisualSimilarityMatchEntity
+import com.boxocr.simple.database.VisualCorrectionEntity
+// Phase 1 Enhancement: Visual Drug Database DAOs imports
+import com.boxocr.simple.database.DrugBoxImageDao
+import com.boxocr.simple.database.DrugBoxFeatureDao
+import com.boxocr.simple.database.VisualSimilarityMatchDao
+import com.boxocr.simple.database.VisualCorrectionDao
+// Phase 1 Enhancement: Enum imports
+import com.boxocr.simple.database.CorrectionType
+import com.boxocr.simple.database.DrugBoxCondition
+import com.boxocr.simple.database.DrugBoxAngle
+import com.boxocr.simple.database.DrugBoxLighting
+import com.boxocr.simple.database.ImageSource
+import com.boxocr.simple.database.VisualFeatureType
 
 /**
  * Main Database class for Box OCR App - Phase 2 Feature
