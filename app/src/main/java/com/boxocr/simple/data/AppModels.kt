@@ -1098,20 +1098,8 @@ fun BatchProcessingPhase.isReadyForProcessing(): Boolean {
            batchSessionId != null
 }
 
-// ============== MEDICAL ANALYSIS CLASSES ==============
-
-@Serializable
-data class CustomAIConfiguration(
-    val configId: String,
-    val name: String,
-    val provider: String,
-    val apiKey: String = "",
-    val baseUrl: String = "",
-    val model: String = "",
-    val parameters: Map<String, String> = emptyMap(),
-    val isEnabled: Boolean = true,
-    val priority: Int = 0
-)
+// ============== AI MODELS & CONFIGURATION SECTION ==============
+// Duplicate definitions removed - canonical definitions are below in the MISSING AI MEDICAL ANALYSIS CLASSES section
 
 /**
  * Local AI Model Type definitions
@@ -1165,7 +1153,7 @@ data class MedicalAnalysisResult(
 
 @Serializable
 enum class UrgencyLevel {
-    LOW, MEDIUM, HIGH, CRITICAL
+    LOW, MODERATE, HIGH, CRITICAL
 }
 
 @Serializable
@@ -1525,7 +1513,7 @@ data class MedicalAnalysisResult(
 @Serializable
 enum class UrgencyLevel {
     LOW,
-    MEDIUM,
+    MODERATE,
     HIGH,
     CRITICAL
 }
