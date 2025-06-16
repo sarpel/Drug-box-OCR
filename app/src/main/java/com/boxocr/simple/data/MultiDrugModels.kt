@@ -1,207 +1,232 @@
 package com.boxocr.simple.data
 
-import android.graphics.Bitmap
 import kotlinx.serialization.Serializable
-// Import from AppModels.kt and VisualDrugDatabaseEntities.kt
-import com.boxocr.simple.database.ImageSource
-import com.boxocr.simple.database.DrugBoxCondition
-import com.boxocr.simple.database.DrugBoxAngle
-import com.boxocr.simple.database.DrugBoxLighting
 
-@Serializable
-data class MultiDrugResult(
-    val id: String,
-    val detectedName: String,
-    val finalDrugName: String,
-    val confidence: Float,
-    val finalConfidence: Float,
-    val enhancementMethod: EnhancementMethod,
-    val originalRegion: DrugRegion,
-    val croppedDrugBoxBitmap: String? = null, // Base64 encoded bitmap
-    val ocrText: String,
-    val drugDatabaseMatch: DrugDatabaseMatch? = null,
-    val visualRecovery: DamagedTextRecoveryResult? = null,
-    val batchIntegration: BatchIntegrationResult? = null,
-    val isVerified: Boolean = false,
-    val hasVisualMatch: Boolean = false,
-    val isAutoVerified: Boolean = false,
-    val processingTime: Long = 0L
-)
+/**
+ * Multi-Drug Models - Phase 3 Enhancement
+ * Contains models specific to multi-drug scanning functionality
+ * Core models like BatchSession, DrugPasteResult are in AppModels.kt
+ */
 
-@Serializable
-data class DrugRegion(
-    val x: Int,
-    val y: Int,
-    val width: Int,
-    val height: Int
-)
-
-@Serializable
-data class DrugDatabaseMatch(
-    val drugName: String,
-    val confidence: Float,
-    val source: String
-)
-
-// Removed duplicate class definitions - using canonical versions from AppModels.kt and VisualDrugDatabaseEntities.kt
-
-@Serializable
-data class BatchSession(
-    val id: String,
-    val name: String,
-    val createdAt: Long,
-    val totalItems: Int = 0,
-    val processedItems: Int = 0
-)
+// ============== MULTI-DRUG SCANNING MODELS ==============
 
 @Serializable
 data class MultiDrugScanResult(
     val timestamp: Long,
     val drugCount: Int,
-    val averageConfidence: Float,
-    val processingTime: Long,
-    val source: ImageSource,
-    val enhancedResults: List<EnhancedDrugResult>,
-    val drugNames: List<String>,
-    val success: Boolean = true,
-    val originalImage: String? = null // Base64 encoded
-)
-
-@Serializable
-data class EnhancedDrugResult(
-    val originalRegion: DrugRegion,
-    val finalDrugName: String,
-    val finalConfidence: Float,
-    val enhancementMethod: EnhancementMethod,
-    val drugDatabaseMatch: DrugDatabaseMatch? = null,
-    val visualRecovery: DamagedTextRecoveryResult? = null
-)
-
-@Serializable
-data class VisualSimilarityMatch(
-    val drugName: String,
+    val success: Boolean,
+    val detectedDrugs: List<DetectedDrug>,
+    val processingTimeMs: Long,
     val confidence: Float,
-    val similarity: Float
+    val sessionId: String
 )
 
-enum class EnhancementMethod {
-    NONE, OCR_ENHANCEMENT, VISUAL_MATCHING, AI_CORRECTION, MANUAL_CORRECTION
+@Serializable
+data class DetectedDrug(
+    val boundingBox: BoundingBox,
+    val extractedText: String,
+    val matchedDrugName: String?,
+    val confidence: Float,
+    val processingOrder: Int,
+    val visualSimilarityScore: Float = 0.0f,
+    val textRecoveryApplied: Boolean = false
+)
+
+@Serializable
+data class BoundingBox(
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float
+)
+
+@Serializable
+data class MultiDrugSession(
+    val sessionId: String,
+    val timestamp: Long,
+    val drugs: List<DetectedDrug>,
+    val totalDrugCount: Int,
+    val successfulMatches: Int,
+    val processingTimeMs: Long,
+    val imageMetadata: ImageMetadata? = null
+)
+
+@Serializable
+data class ImageMetadata(
+    val width: Int,
+    val height: Int,
+    val sourceType: ImageSourceType,
+    val enhancementApplied: EnhancementMethod? = null
+)
+
+enum class ImageSourceType {
+    CAMERA_CAPTURE,
+    GALLERY_IMAGE,
+    LIVE_VIDEO_FRAME
 }
 
-// Extension functions for convenience
-fun List<MultiDrugResult>.toMutableList(): MutableList<MultiDrugResult> = this.toMutableList()
+enum class EnhancementMethod {
+    BRIGHTNESS_CONTRAST,
+    NOISE_REDUCTION,
+    SHARPENING,
+    EDGE_ENHANCEMENT,
+    TEXT_BINARIZATION
+}
 
-// ============== MISSING MULTI-DRUG CLASSES ==============
+// ============== VISUAL SIMILARITY MODELS ==============
+
+@Serializable
+data class VisualSimilarityResult(
+    val drugBoxImage: DrugBoxImageInfo,
+    val similarityScore: Float,
+    val matchingFeatures: List<String>,
+    val visualConfidence: Float
+)
+
+@Serializable
+data class DrugBoxImageInfo(
+    val drugName: String,
+    val imageHash: String,
+    val condition: BoxCondition,
+    val angle: CaptureAngle,
+    val lighting: LightingCondition
+)
+
+enum class BoxCondition {
+    PERFECT,
+    GOOD,
+    WORN,
+    DAMAGED,
+    SEVERELY_DAMAGED
+}
+
+enum class CaptureAngle {
+    FRONT,
+    LEFT_SIDE,
+    RIGHT_SIDE,
+    TOP,
+    ANGLED
+}
+
+enum class LightingCondition {
+    OPTIMAL,
+    OVEREXPOSED,
+    UNDEREXPOSED,
+    LOW_CONTRAST,
+    SHADOW_PRESENT
+}
+
+// ============== TEXT RECOVERY MODELS ==============
 
 @Serializable
 data class DamagedTextRecoveryResult(
+    val originalText: String,
     val recoveredText: String,
     val confidence: Float,
-    val recoveryMethod: String,
-    val originalDamagedText: String,
-    val isSuccessful: Boolean = true
+    val recoveryMethod: TextRecoveryMethod,
+    val dictionaryMatches: List<String>
+)
+
+enum class TextRecoveryMethod {
+    DICTIONARY_COMPLETION,
+    AI_RECONSTRUCTION,
+    PATTERN_MATCHING,
+    CONTEXT_INFERENCE,
+    HYBRID_APPROACH
+}
+
+// ============== REAL-TIME SCANNING MODELS ==============
+
+@Serializable
+data class LiveScanningState(
+    val isScanning: Boolean,
+    val detectedBoxes: List<BoundingBox>,
+    val currentDrugCount: Int,
+    val frameProcessingRate: Float,
+    val lastDetectionTimestamp: Long
 )
 
 @Serializable
-data class BatchIntegrationResult(
-    val sessionId: String,
-    val totalItems: Int,
-    val processedItems: Int,
-    val successfulItems: Int = 0,
-    val failedItems: Int = 0,
-    val isCompleted: Boolean = false
+data class RealtimeDetection(
+    val boundingBox: BoundingBox,
+    val confidence: Float,
+    val stabilityScore: Float,
+    val framesSinceDetection: Int,
+    val preliminaryText: String? = null
 )
 
-@Serializable
-data class BatchMultiDrugResult(
-    val sessionId: String,
-    val results: List<MultiDrugScanResult>,
-    val totalProcessed: Int,
-    val successCount: Int,
-    val timestamp: Long = System.currentTimeMillis()
-)
+
+// ============== OBJECT DETECTION MODELS ==============
 
 @Serializable
 data class DrugBoxRegion(
-    val boundingBox: DrugRegion,
+    val boundingBox: BoundingBox,
     val confidence: Float,
-    val detectedText: String? = null,
-    val quality: Float = 1.0f
+    val regionId: String,
+    val extractedText: String? = null,
+    val ocrConfidence: Float = 0.0f,
+    val matchedDrug: DrugInfo? = null,
+    val visualSimilarityScore: Float = 0.0f,
+    val textRecoveryApplied: Boolean = false,
+    val processingOrder: Int = 0
 )
 
 @Serializable
-data class MultiDrugScannerState(
-    val isScanning: Boolean = false,
-    val detectedRegions: List<DrugBoxRegion> = emptyList(),
-    val message: String? = null
-)
-
-@Serializable
-data class MultiDrugDetectionState(
-    val isDetecting: Boolean = false,
-    val regions: List<DrugBoxRegion> = emptyList(),
-    val frameQuality: FrameQuality = FrameQuality.UNKNOWN
-)
-
-@Serializable
-enum class FrameQuality {
-    EXCELLENT,
-    GOOD,
-    FAIR,
-    POOR,
-    VERY_POOR,
-    BLURRY,
-    DARK,
-    OVEREXPOSED,
-    UNKNOWN
-}
-
-// Add missing @Serializable annotation to existing enum
-@Serializable
-enum class EnhancementMethod {
-    NONE, 
-    OCR_ENHANCEMENT, 
-    VISUAL_MATCHING, 
-    AI_CORRECTION, 
-    MANUAL_CORRECTION
-}
-
-// ============== WINDOWS AUTOMATION MISSING CLASSES ==============
-
-@Serializable
-data class WindowDetectionResult(
-    val sessionId: String,
-    val windowTitle: String,
-    val isValid: Boolean = false,
-    val error: String? = null
-)
-
-@Serializable
-data class DrugPasteResult(
-    val drugName: String,
-    val success: Boolean,
-    val windowTitle: String,
-    val timestamp: Long = System.currentTimeMillis()
-)
-
-// ============== INCOMPLETE SESSION ==============
-
-@Serializable
-data class IncompleteSession(
+data class MultiDrugResult(
     val sessionId: String,
     val timestamp: Long,
-    val remainingDrugs: List<String>,
-    val lastWindowTitle: String? = null
+    val imageSource: ImageSourceType,
+    val detectedRegions: List<DrugBoxRegion>,
+    val totalDrugCount: Int,
+    val successfulMatches: Int,
+    val failedMatches: Int,
+    val averageConfidence: Float,
+    val processingTimeMs: Long,
+    val visualEnhancementApplied: Boolean = false,
+    val textRecoveryUsed: Boolean = false,
+    val metadata: Map<String, String> = emptyMap()
 )
-
-// ============== VISUAL FEATURES ==============
 
 @Serializable
-data class FeatureData(
-    val data: List<Float>,
-    val type: String,
-    val confidence: Float = 1.0f
+data class ObjectDetectionResult(
+    val detectedObjects: List<DrugBoxRegion>,
+    val processingTime: Long,
+    val modelUsed: String,
+    val imageSize: ImageSize,
+    val detectionConfidenceThreshold: Float
 )
 
-// Fix the extension function issue by removing problematic extension
-// Extension functions don't need to be in data classes and can cause compilation issues
+@Serializable
+data class ImageSize(
+    val width: Int,
+    val height: Int
+)
+
+// ============== MULTI-DRUG SCANNING STATE ==============
+
+@Serializable
+data class MultiDrugScanningState(
+    val isScanning: Boolean,
+    val currentMode: ScanningMode,
+    val detectedRegions: List<DrugBoxRegion>,
+    val lastFrameProcessingTime: Long,
+    val frameRate: Float,
+    val stabilityMetrics: ScanningStabilityMetrics
+)
+
+@Serializable
+enum class ScanningMode {
+    SINGLE_DRUG,
+    MULTI_DRUG,
+    LIVE_VIDEO,
+    DAMAGED_RECOVERY,
+    BATCH_PROCESSING
+}
+
+@Serializable
+data class ScanningStabilityMetrics(
+    val averageConfidence: Float,
+    val detectionStability: Float,
+    val frameConsistency: Float,
+    val processingConsistency: Float
+)

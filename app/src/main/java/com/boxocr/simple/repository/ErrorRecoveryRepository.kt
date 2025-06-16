@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.boxocr.simple.data.*
 import com.boxocr.simple.ui.recovery.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -261,13 +263,13 @@ class ErrorRecoveryRepository @Inject constructor(
                 RecoverySuggestion(
                     title = "Check Camera Permission",
                     description = "Ensure the app has camera access",
-                    icon = androidx.compose.material.icons.Icons.Default.CameraAlt,
+                    icon = Icons.Default.CameraAlt,
                     action = RecoveryAction.CHECK_PERMISSIONS
                 ),
                 RecoverySuggestion(
                     title = "Restart Camera",
                     description = "Reinitialize camera connection",
-                    icon = androidx.compose.material.icons.Icons.Default.Refresh,
+                    icon = Icons.Default.Refresh,
                     action = RecoveryAction.RESTART_CAMERA
                 )
             )
@@ -276,13 +278,13 @@ class ErrorRecoveryRepository @Inject constructor(
                 RecoverySuggestion(
                     title = "Retry Scan",
                     description = "Try scanning the drug box again",
-                    icon = androidx.compose.material.icons.Icons.Default.Refresh,
+                    icon = Icons.Default.Refresh,
                     action = RecoveryAction.RETRY_OCR
                 ),
                 RecoverySuggestion(
                     title = "Manual Entry",
                     description = "Enter drug name manually",
-                    icon = androidx.compose.material.icons.Icons.Default.Edit,
+                    icon = Icons.Default.Edit,
                     action = RecoveryAction.MANUAL_ENTRY
                 )
             )
@@ -291,13 +293,13 @@ class ErrorRecoveryRepository @Inject constructor(
                 RecoverySuggestion(
                     title = "Check Internet",
                     description = "Verify your internet connection",
-                    icon = androidx.compose.material.icons.Icons.Default.Wifi,
+                    icon = Icons.Default.Wifi,
                     action = RecoveryAction.CHECK_NETWORK
                 ),
                 RecoverySuggestion(
                     title = "Offline Mode",
                     description = "Continue with offline database",
-                    icon = androidx.compose.material.icons.Icons.Default.CloudOff,
+                    icon = Icons.Default.CloudOff,
                     action = RecoveryAction.USE_OFFLINE
                 )
             )
